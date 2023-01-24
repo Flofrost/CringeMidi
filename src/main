@@ -1,0 +1,40 @@
+#!/bin/python3
+import PySimpleGUI as sg
+import CringeMenus
+
+
+if __name__ == "__main__":
+
+    sg.theme("DarkPurple6")
+
+    layout = [
+        [sg.Menu(CringeMenus.menuBar, tearoff=False, pad=(200, 1))],
+        [sg.Text('Right click me for a right click menu example')],
+        [sg.Output(size=(60, 20))],
+        [sg.Button('Plain Button')],
+    ]
+
+    window = sg.Window("CringeMidi",
+                       layout,
+                       default_element_size=(12, 1),
+                       default_button_element_size=(12, 1),
+                       right_click_menu=CringeMenus.right_click_menu)
+    
+    while True:
+        event, values = window.read()
+        if event in (sg.WIN_CLOSED, 'Exit'):
+            break
+        print(event, values)
+        # ------ Process menu choices ------ #
+        if event == 'About...':
+            window.disappear()
+            sg.popup('About this program', 'Version 1.0',
+                     'PySimpleGUI Version', sg.version,  grab_anywhere=True)
+            window.reappear()
+        elif event == 'Open':
+            filename = sg.popup_get_file('file to open', no_window=True)
+            print(filename)
+        elif event == "Quit":
+            break
+
+    window.close()
