@@ -1,42 +1,42 @@
 #!/bin/python3
+from re import search
 import PySimpleGUI as sg
-import CringeMenus
+
+import CringeWidgets
+import CringeWindows
 
 if __name__ == "__main__":
+    
+    sg.theme("DarkPurple1")
 
-    sg.theme("DarkPurple6")
+    test = sg.Text("",expand_x=True,expand_y=True)
 
     # ------ GUI Defintion ------ #
     layout = [
-        [sg.Menu(CringeMenus.menuBar, tearoff=False, pad=(200, 1))],
-        [sg.Text('Right click me for a right click menu example')],
-        [sg.Output(size=(60, 20))],
-        [sg.ButtonMenu('ButtonMenu',  CringeMenus.right_click_menu, key='-BMENU-'), sg.Button('Plain Button')],
+        [CringeWidgets.menuBar],
+        [test],
+        [CringeWidgets.statusBar]
     ]
 
-    window = sg.Window("Windows-like program",
+    window = sg.Window("CringeMidi",
                        layout,
-                       default_element_size=(12, 1),
-                       default_button_element_size=(12, 1),
-                       right_click_menu=CringeMenus.right_click_menu)
-
+                       element_padding = (5,3),
+                       resizable = True,
+                       finalize=True)
+    
     # ------ Loop & Process button menu choices ------ #
     while True:
         event, values = window.read()
         
+        if search("::.+$",event):
+            event = event.split("::")[1]
+
         if event in (sg.WIN_CLOSED,"Quit"):
             break
-
-        # ------ Process menu choices ------ #
-        # if event == 'About...':
-        #     window.disappear()
-        #     sg.popup('About this program', 'Version 1.0',
-        #              'PySimpleGUI Version', sg.version,  grab_anywhere=True)
-        #     window.reappear()
-        # elif event == 'Open':
-        #     filename = sg.popup_get_file('file to open', no_window=True)
-        #     print(filename)
-        # elif event == 'Properties':
-        #     pass
+        
+        CringeWidgets.saveBtn.enabled = not CringeWidgets.saveBtn.enabled
+        CringeWidgets.menuBar.update(CringeWidgets.menuBarDef())
+        
+        test.update(event)
 
     window.close()
