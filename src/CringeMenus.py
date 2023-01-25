@@ -24,4 +24,4 @@ menuBar = [
     ]]
 ]
 
-right_click_menu = ["Placeholder"]
+right_click_menu = ["", ["Placeholder"]]

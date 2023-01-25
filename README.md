@@ -1,2 +1,2 @@
 # CringeMidi
-Midi for the BraunFIghters hardware
+Midi for the BraunFighters hardware
