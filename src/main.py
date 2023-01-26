@@ -7,13 +7,16 @@ import CringeWindows
 
 if __name__ == "__main__":
     
+    ### Global Parameters ###
+
     sg.theme("DarkPurple1")
 
     test = sg.Text("",expand_x=True,expand_y=True)
 
-    # ------ GUI Defintion ------ #
+    ### GUI Setup ###
     layout = [
         [CringeWidgets.menuBar],
+        [CringeWidgets.toolBar],
         [test],
         [CringeWidgets.statusBar]
     ]
@@ -24,19 +27,20 @@ if __name__ == "__main__":
                        resizable = True,
                        finalize=True)
     
-    # ------ Loop & Process button menu choices ------ #
+    ### Main Loop ###
     while True:
-        event, values = window.read()
+        event, values = window.read() # Reading events from window
         
-        if search("::.+$",event):
+        if isinstance(event, str) and search("::.+$",event): # If event has a special key, extract the key from it
             event = event.split("::")[1]
 
         if event in (sg.WIN_CLOSED,"Quit"):
-            break
+            if CringeWindows.exitProtocol():
+                break
         
         CringeWidgets.saveBtn.enabled = not CringeWidgets.saveBtn.enabled
         CringeWidgets.menuBar.update(CringeWidgets.menuBarDef())
         
-        test.update(event)
+        CringeWidgets.statusBar.update(event)
 
     window.close()
