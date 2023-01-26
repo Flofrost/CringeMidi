@@ -3,7 +3,7 @@ import PySimpleGUI as sg
 
 
 class MenuItem:
-    def __init__(self,name:str,enabled:bool=True,key=None):
+    def __init__(self,name:str,enabled:bool=True,key=""):
         self.name = name
         self.enabled = enabled
         self.key = key
@@ -25,6 +25,7 @@ cutMenuBtn    = MenuItem("C&ut",              enabled=False, key="cut")
 pasteMenuBtn  = MenuItem("&Paste",            enabled=False, key="paste")
 delMenuBtn    = MenuItem("&Delete Selection", enabled=False, key="delete")
 invSelMenuBtn = MenuItem("&Invert Selection", enabled=False, key="invSel")
+projectBtn    = MenuItem("&Project",          enabled=False)
 
 def menuBarDef():
     return  [["&File",[
@@ -33,7 +34,7 @@ def menuBarDef():
                 "---",
                 str(saveMenuBtn),
                 "Save &As::saveAs",
-                "&Export::export",
+                "&Export Audio::export",
                 "---",
                 "&Quit"
             ]],
@@ -51,6 +52,10 @@ def menuBarDef():
                 "---",
                 "&Preferences::menuPreferences"
             ]],
+             [str(projectBtn),[
+                "Project &Settings::projectSettings",
+                "&Generate Code::generateCode"
+             ]],
              ["&Help",[
                 "&Help::help",
                 "&Git::browseGit",

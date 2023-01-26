@@ -11,13 +11,12 @@ if __name__ == "__main__":
 
     sg.theme("DarkPurple1")
 
-    test = sg.Text("",expand_x=True,expand_y=True)
 
     ### GUI Setup ###
     layout = [
         [CringeWidgets.menuBar],
         [CringeWidgets.toolBar],
-        [test],
+        [sg.Frame("Instruments",[[sg.Text("a")]],expand_y=True,expand_x=True),sg.Frame("Sheet",[[sg.Text("b")]],expand_y=True,expand_x=True)],
         [CringeWidgets.statusBar]
     ]
 
