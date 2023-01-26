@@ -38,7 +38,7 @@ if __name__ == "__main__":
             if CringeWindows.exitProtocol():
                 break
         
-        CringeWidgets.saveBtn.enabled = not CringeWidgets.saveBtn.enabled
+        CringeWidgets.saveMenuBtn.enabled = not CringeWidgets.saveMenuBtn.enabled
         CringeWidgets.menuBar.update(CringeWidgets.menuBarDef())
         
         CringeWidgets.statusBar.update(event)

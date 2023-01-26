@@ -1,4 +1,6 @@
+import os
 import PySimpleGUI as sg
+
 
 class MenuItem:
     def __init__(self,name:str,enabled:bool=True,key=None):
@@ -59,8 +61,8 @@ menuBar = sg.Menu(menuBarDef())
 ## Main Menu Bar ##
 
 ### Main Tool Bar ###
-undoToolBtn = sg.Button(image_filename="../assets/undo.png", key="undo")
-redoToolBtn = sg.Button(image_filename="../assets/redo.png", key="redo")
+undoToolBtn = sg.Button(image_source=os.path.abspath(".") + os.sep + "assets" + os.sep + "undo.png", key="undo")
+redoToolBtn = sg.Button(image_source=os.path.abspath(".") + os.sep + "assets" + os.sep + "redo.png", key="redo")
 
 def toolBarDef():
     return  [[
