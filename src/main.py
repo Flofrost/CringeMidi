@@ -1,5 +1,5 @@
 #!/bin/python3
-from re import search
+from re import search,Match
 import PySimpleGUI as sg
 
 import CringeWidgets
@@ -16,7 +16,7 @@ if __name__ == "__main__":
     layout = [
         [CringeWidgets.menuBar],
         [CringeWidgets.toolBar],
-        [sg.Frame("Instruments",[[sg.Text("a")]],expand_y=True,expand_x=True),sg.Frame("Sheet",[[sg.Text("b")]],expand_y=True,expand_x=True)],
+        [CringeWidgets.instrumentList, sg.Frame("",[[]])],
         [CringeWidgets.statusBar]
     ]
 
@@ -29,16 +29,17 @@ if __name__ == "__main__":
     ### Main Loop ###
     while True:
         event, values = window.read() # Reading events from window
+        CringeWidgets.dada.bind("<Button-1>", sg.popup)
         
         if isinstance(event, str) and search("::.+$",event): # If event has a special key, extract the key from it
             event = event.split("::")[1]
-
+            
         if event in (sg.WIN_CLOSED,"Quit"):
             if CringeWindows.exitProtocol():
                 break
-        
-        CringeWidgets.saveMenuBtn.enabled = not CringeWidgets.saveMenuBtn.enabled
+
         CringeWidgets.menuBar.update(CringeWidgets.menuBarDef())
+        CringeWidgets.instrumentList.update(CringeWidgets.instrumentsListBarDef())
         
         CringeWidgets.statusBar.update(event)
 

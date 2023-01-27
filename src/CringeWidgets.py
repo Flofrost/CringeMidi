@@ -1,6 +1,8 @@
+from json import tool
 import os
 import PySimpleGUI as sg
 
+assetsPath = os.path.abspath(".") + os.sep + "assets" + os.sep 
 
 class MenuItem:
     def __init__(self,name:str,enabled:bool=True,key=""):
@@ -66,8 +68,8 @@ menuBar = sg.Menu(menuBarDef())
 ## Main Menu Bar ##
 
 ### Main Tool Bar ###
-undoToolBtn = sg.Button(image_source=os.path.abspath(".") + os.sep + "assets" + os.sep + "undo.png", key="undo")
-redoToolBtn = sg.Button(image_source=os.path.abspath(".") + os.sep + "assets" + os.sep + "redo.png", key="redo")
+undoToolBtn = sg.Button(image_source=assetsPath + "undo.png", key="undo", tooltip="Undo")
+redoToolBtn = sg.Button(image_source=assetsPath + "redo.png", key="redo", tooltip="Redo")
 
 def toolBarDef():
     return  [[
@@ -76,5 +78,23 @@ def toolBarDef():
     ]]
 
 toolBar = sg.Frame("",toolBarDef(),
-                    expand_x=True)
+                   expand_x=True)
 ### Main Tool Bar ###
+
+### Instrument List ###
+addInstrumentBtn = sg.Button("+", key="addInstrument")
+rmvInstrumentBtn = sg.Button("-", key="rmvInstrument", disabled=True)
+
+dada = sg.Frame("bob",[[sg.Text("ahahaha")]])
+
+def instrumentsListBarDef():
+    return [[
+        addInstrumentBtn,
+        rmvInstrumentBtn,
+        dada
+    ]]
+
+instrumentList = sg.Column(instrumentsListBarDef(),
+                           expand_y=True,
+                           scrollable=True)
+### Instrument List ###
