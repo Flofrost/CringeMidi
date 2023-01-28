@@ -1,6 +1,6 @@
-from json import tool
 import os
 import PySimpleGUI as sg
+from CringeMidi import *
 
 assetsPath = os.path.abspath(".") + os.sep + "assets" + os.sep 
 
@@ -15,7 +15,9 @@ class MenuItem:
 
 ## Main Status Bar ##
 statusBar = sg.StatusBar("test",
-                         expand_y=True)
+                         expand_x=True,
+                         size=150,
+                         relief=sg.RELIEF_FLAT)
 ## Main Status Bar ##
 
 ## Main Menu Bar ##
@@ -82,19 +84,18 @@ toolBar = sg.Frame("",toolBarDef(),
 ### Main Tool Bar ###
 
 ### Instrument List ###
-addInstrumentBtn = sg.Button("+", key="addInstrument")
-rmvInstrumentBtn = sg.Button("-", key="rmvInstrument", disabled=True)
+addInstrumentBtn = sg.Button("+", key="addInstrument", tooltip="Add Instrument")
+rmvInstrumentBtn = sg.Button("-", key="rmvInstrument", tooltip="Remove Instrument", disabled=True)
 
-dada = sg.Frame("bob",[[sg.Text("ahahaha")]])
+instrumentList = [Instrument("test")]
 
-def instrumentsListBarDef():
-    return [[
-        addInstrumentBtn,
-        rmvInstrumentBtn,
-        dada
-    ]]
+# def instrumentsListWidgetDef(instrumentList:list=[]):
+#     return [[
+#         addInstrumentBtn,
+#         rmvInstrumentBtn
+#     ]] + [[ins.frame] for ins in instrumentList]
 
-instrumentList = sg.Column(instrumentsListBarDef(),
-                           expand_y=True,
-                           scrollable=True)
+instrumentListWidget = sg.Listbox(instrumentList,
+                                  expand_y=True,
+                                  enable_events=True)
 ### Instrument List ###

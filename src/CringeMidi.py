@@ -1,4 +1,5 @@
 import re
+import PySimpleGUI as sg
 
 freqencyTable = {"C":32.703, "D":36.708, "E":41.203, "F":43.654, "G":48.999, "A":55, "B":61.735}
 
@@ -22,25 +23,34 @@ class Note():
         Anything else will be considered silence.
         """
         
-        octave = re.search("\d",noteStr).group(0)
-        note = re.search("[A-G#b]{0,2}(?=\d)",noteStr).group(0)
-        
-        if len(note) > 1:
-            if note[1] == "#":
-                note = freqencyTable[note[0]] * (2 ** (1/12))
-            else:
-                note = freqencyTable[note[0]] / (2 ** (1/12))
-        else:
-            note = freqencyTable[note]
+        try:
+            octave = re.search("\d",noteStr).group(0)
+            note = re.search("[A-G#b]{0,2}(?=\d)",noteStr).group(0)
             
-        note *= 2 ** (int(octave) - 1)
+            if len(note) > 1:
+                if note[1] == "#":
+                    note = freqencyTable[note[0]] * (2 ** (1/12))
+                elif note[1] == "b":
+                    note = freqencyTable[note[0]] / (2 ** (1/12))
+            else:
+                note = freqencyTable[note]
+                
+            note *= 2 ** (int(octave) - 1)
+        except:
+            note = 0
         
         return note
 
 class Instrument():
     
-    def __init__(self) -> None:
+    def __init__(self, name="New Instrument", type="sine", visible=True) -> None:
         self.notes = []
+        self.name = name
+        self.type = type
+        self.visible = visible
+
+    def __str__(self) -> str:
+        return self.name
 
 class Sheet():
     
