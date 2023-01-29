@@ -1,101 +1,76 @@
-import os
-import PySimpleGUI as sg
+from __future__ import annotations
+import curses as nc
+from abc import ABCMeta, abstractmethod
+
 from CringeMidi import *
+from CringeMisc import *
 
-assetsPath = os.path.abspath(".") + os.sep + "assets" + os.sep 
+class Widget(metaclass=ABCMeta):
 
-class MenuItem:
-    def __init__(self,name:str,enabled:bool=True,key=""):
-        self.name = name
-        self.enabled = enabled
-        self.key = key
+    def __init__(self,
+                 screen:nc._CursesWindow,
+                 name:str=generateUID(),
+                 position: list[int, int] = [0,0]) -> None:
         
-    def __str__(self) -> str:
-        return f"{'' if self.enabled else '!'}{self.name}{'::' if self.key else ''}{self.key}"
+        self.screen = screen
+        self.name = name
+        self.position = position
+        
+    @abstractmethod
+    def draw(self):
+        pass
 
-## Main Status Bar ##
-statusBar = sg.StatusBar("test",
-                         expand_x=True,
-                         size=150,
-                         relief=sg.RELIEF_FLAT)
-## Main Status Bar ##
+class Button(Widget):
 
-## Main Menu Bar ##
-saveMenuBtn   = MenuItem("&Save",             enabled=False, key="save")
-undoMenuBtn   = MenuItem("&Undo",             enabled=False, key="undo")
-redoMenuBtn   = MenuItem("&Redo",             enabled=False, key="redo")
-copyMenuBtn   = MenuItem("&Copy",             enabled=False, key="copy")
-cutMenuBtn    = MenuItem("C&ut",              enabled=False, key="cut")
-pasteMenuBtn  = MenuItem("&Paste",            enabled=False, key="paste")
-delMenuBtn    = MenuItem("&Delete Selection", enabled=False, key="delete")
-invSelMenuBtn = MenuItem("&Invert Selection", enabled=False, key="invSel")
-projectBtn    = MenuItem("&Project",          enabled=False)
+    def __init__(self,
+                 screen: nc._CursesWindow, 
+                 name: str = generateUID(),
+                 text: str = "Button",
+                 position: list[int, int] = [0, 0],
+                 respondsTo: tuple = (nc.BUTTON1_CLICKED,None),
+                 style: str = "text") -> None:
 
-def menuBarDef():
-    return  [["&File",[
-                "&New::new",
-                "&Open::open",
-                "---",
-                str(saveMenuBtn),
-                "Save &As::saveAs",
-                "&Export Audio::export",
-                "---",
-                "&Quit"
-            ]],
-             ["&Edit",[
-                str(undoMenuBtn),
-                str(redoMenuBtn),
-                "---",
-                str(copyMenuBtn),
-                str(cutMenuBtn),
-                str(pasteMenuBtn),
-                "---",
-                "Select &All::selectAll",
-                str(invSelMenuBtn),
-                str(delMenuBtn),
-                "---",
-                "&Preferences::menuPreferences"
-            ]],
-             [str(projectBtn),[
-                "Project &Settings::projectSettings",
-                "&Generate Code::generateCode"
-             ]],
-             ["&Help",[
-                "&Help::help",
-                "&Git::browseGit",
-                "&About::about"
-            ]]]
+        super().__init__(screen, name, position)
 
-menuBar = sg.Menu(menuBarDef())
-## Main Menu Bar ##
+        if style == "text":
+            size = [len(text), 1]
+        else:
+            raise Exception(f"'{style}' is not a recognized style")
 
-### Main Tool Bar ###
-undoToolBtn = sg.Button(image_source=assetsPath + "undo.png", key="undo", tooltip="Undo")
-redoToolBtn = sg.Button(image_source=assetsPath + "redo.png", key="redo", tooltip="Redo")
+        self.size = size 
+        self.text = text
+        self.style = style
+        self.respondsTo = respondsTo
+        
+    def draw(self):
+        if self.style == "text":
+            self.screen.addstr(self.position[1], self.position[0], self.text)
 
-def toolBarDef():
-    return  [[
-        undoToolBtn,
-        redoToolBtn
-    ]]
+    def cliked(self, clickPosition:list[int, int], clickType:int) -> bool:
+        for response in self.respondsTo:
+            if clickType == response:
+                relPos = subPos(clickPosition, self.position)
+                return (relPos[0] >= 0) and (relPos[1] >= 0) and (relPos[0] < self.size[0]) and (relPos[1] < self.size[1])
+        return False
+    
+class StatusBar(Widget):
 
-toolBar = sg.Frame("",toolBarDef(),
-                   expand_x=True)
-### Main Tool Bar ###
+    def __init__(self,
+                 screen: nc._CursesWindow,
+                 name: str = generateUID(),
+                 text: str = "",
+                 color = 0,
+                 justification: str = "left") -> None:
 
-### Instrument List ###
-addInstrumentBtn = sg.Button("+", key="addInstrument", tooltip="Add Instrument")
-rmvInstrumentBtn = sg.Button("-", key="rmvInstrument", tooltip="Remove Instrument", disabled=True)
-
-instrumentList = [Instrument("test")]
-
-# def instrumentsListWidgetDef(instrumentList:list=[]):
-#     return [[
-#         addInstrumentBtn,
-#         rmvInstrumentBtn
-#     ]] + [[ins.frame] for ins in instrumentList]
-
-instrumentListWidget = sg.Listbox(instrumentList,
-                                  expand_y=True,
-                                  enable_events=True)
-### Instrument List ###
+        super().__init__(screen, name, [0, screen.getmaxyx()[0]-1])
+        
+        self.size = [screen.getmaxyx()[1], 1]
+        self.text = text
+        self.color = color
+        self.justification = justification
+        
+    def draw(self):
+        self.position = [0, self.screen.getmaxyx()[0]-1]
+        self.screen.move(self.position[1], self.position[0])
+        self.screen.clrtoeol()
+        self.screen.addstr(self.position[1], self.position[0], self.text, nc.color_pair(self.color))

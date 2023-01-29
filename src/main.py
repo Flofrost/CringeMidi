@@ -1,47 +1,46 @@
 #!/bin/python3
-from re import search
-import PySimpleGUI as sg
+from __future__ import annotations
+import curses as nc
+from tkinter import Button
 
 import CringeMidi
-import CringeMisc
+from CringeMisc import *
 import CringeWidgets
-import CringeWindows
+
+def main(screen:nc._CursesWindow):
+
+    if nc.has_colors():
+        nc.use_default_colors()
+    nc.mousemask(-1)
+
+    screen.nodelay(1)
+
+    delay = 1000
+    mode = "normal"
+    screenSize = screen.getmaxyx()
+    
+    statusBar = CringeWidgets.StatusBar(screen=screen,
+                                        text="Testing...")
+    
+    statusBar.draw()
+
+    while True:
+        
+        event = screen.getch()
+        
+        if event == nc.KEY_MOUSE:
+            event = nc.getmouse()
+            eventPosition = event[1:3]
+            event = event[4]
+            
+            if event == nc.BUTTON1_TRIPLE_CLICKED:
+                return
+
+        if nc.is_term_resized(screenSize[0], screenSize[1]):
+            screenSize = screen.getmaxyx()
+            statusBar.draw()
+
+        nc.napms(delay)
 
 if __name__ == "__main__":
-    
-    ### Global Parameters ###
-
-    sg.theme("DarkPurple1")
-
-
-    ### GUI Setup ###
-    layout = [
-        [CringeWidgets.menuBar],
-        [CringeWidgets.toolBar],
-        [sg.Frame("Instruments",[[CringeWidgets.addInstrumentBtn, CringeWidgets.rmvInstrumentBtn], [CringeWidgets.instrumentListWidget]], expand_y=True), sg.Frame("",[[]])],
-        [CringeWidgets.statusBar]
-    ]
-
-    window = sg.Window("CringeMidi",
-                       layout,
-                       element_padding = (5,3),
-                       resizable = True,
-                       finalize=True)
-    
-    ### Main Loop ###
-    while True:
-        event, values = window.read() # Reading events from window
-        
-        if isinstance(event, str) and search("::.+$",event): # If event has a special key, extract the key from it
-            event = event.split("::")[1]
-            
-        if event == "addInstrument":
-            pass
-        elif event in (sg.WIN_CLOSED,"Quit"):
-            if CringeWindows.exitProtocol():
-                break
-
-        CringeWidgets.menuBar.update(CringeWidgets.menuBarDef())
-        CringeWidgets.statusBar.update(event)
-
-    window.close()
+    nc.wrapper(main)

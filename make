@@ -12,11 +12,10 @@ if [ "$1" == "clean" ]; then
 fi
 
 # Linux Version
-pyinstaller --onedir --windowed -y\
+pyinstaller --onedir --console -y\
             --name CringeMidi\
             --workpath build/Linux\
             --distpath build/Linux/bin\
-            --add-data "assets:assets"\
             src/main.py
 
 if [ "$?" == "0" ]; then
@@ -25,11 +24,10 @@ if [ "$?" == "0" ]; then
     cd ../../../
 
     # Windows Version
-    wine "$winPyinstallerPath" --onedir --windowed -y\
+    wine "$winPyinstallerPath" --onedir --console -y\
                 --name CringeMidi\
                 --workpath build/Windows\
                 --distpath build/Windows/bin\
-                --add-data "assets;assets"\
                 src/main.py
     
     cd build/Windows/bin
