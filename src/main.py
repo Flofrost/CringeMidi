@@ -36,12 +36,12 @@ def main(screen:nc._CursesWindow):
         CringeWidgets.ToggleButton(screen=screen,
                                    name=modes[2],
                                    position=[20,0],
-                                   text="麗 Visual",
+                                   text="麗​ Visual",
                                    style="bordered"),
         CringeWidgets.ToggleButton(screen=screen,
                                    name=modes[3],
-                                   position=[30,0],
-                                   text="金 Play",
+                                   position=[31,0],
+                                   text="金​ Play",
                                    style="bordered"),
     ]
 
