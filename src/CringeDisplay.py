@@ -24,6 +24,18 @@ def updateActiveMode(newMode:str, widgetsToUpdate:list[ToggleButton]):
         w.state = True if w.name == newMode else False
         w.draw()
     return newMode
+
+def getRequieredSize() -> list[int, int]:
+    return [
+        normalModeButton.size[0] + 
+        insertModeButton.size[0] +
+        visualModeButton.size[0] +
+        playModeButton.size[0]   +
+        projectSettingsButton.size[0]   +
+        exitButton.size[0]   +
+        7
+        , 7
+    ]
 ### Definition of display functions###
 
 
@@ -87,16 +99,4 @@ def resetWidgetsPosition() -> None:
 
     exitButton.position            = [screenSize[1] - exitButton.size[0] - 1, 0]
     projectSettingsButton.position = [exitButton.position[0] - projectSettingsButton.size[0] - 1, 0]
-    
-def getRequieredSize() -> list[int, int]:
-    return [
-        normalModeButton.size[0] + 
-        insertModeButton.size[0] +
-        visualModeButton.size[0] +
-        playModeButton.size[0]   +
-        projectSettingsButton.size[0]   +
-        exitButton.size[0]   +
-        7
-        , 5
-    ]
 ### Definition of layout ###

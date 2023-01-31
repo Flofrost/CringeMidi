@@ -43,6 +43,31 @@ class InteractibleWidget(Widget, metaclass=ABCMeta):
     def clicked(self, clickType:int, clickPosition:list[int, int]) -> bool:
         pass
 
+class Line(Widget):
+
+    def __init__(self,
+                 screen: nc._CursesWindow,
+                 name: str,
+                 position: list[int, int] = [0, 0],
+                 size: list[int, int] = [0, 1],
+                 color: int = 0) -> None:
+
+        super().__init__(screen, name, position, color)
+        
+        if size[0] ^ size[1]:
+            self.size = size
+        else:
+            raise Exception("Size does not describe a stricly horizontal or vertical line")
+        
+    def draw(self):
+        if self.size[0]:
+            for i in range(self.size[0]):
+                relPos = self.position[0] + i
+                if self.screen.inch(self.position[1], self.position[0] + i):
+                    pass
+        else:
+            pass
+
 class Button(InteractibleWidget):
 
     def __init__(self,
