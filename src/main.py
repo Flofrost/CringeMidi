@@ -2,11 +2,13 @@
 from __future__ import annotations
 import curses as nc
 
+import CringeDisplay
 import CringeMidi
-from CringeMisc import *
+import CringeMisc
 import CringeWidgets
 
-def main(screen:nc._CursesWindow):
+
+if __name__ == "__main__":
 
     if nc.has_colors():
         nc.use_default_colors()
@@ -14,68 +16,42 @@ def main(screen:nc._CursesWindow):
 
     nc.mousemask(-1)
 
-    screen.nodelay(1)
-    screen.timeout(50)
+    CringeDisplay.screen.nodelay(1)
+    CringeDisplay.screen.timeout(20)
     
-    modes = ["Normal", "Insert", "Visual", "Play"]
-    mode = modes[0]
-    i = 0
-    screenSize = screen.getmaxyx()
+    CringeDisplay.updateActiveMode("normal", CringeDisplay.listOfModeButtons)
+    CringeWidgets.drawAllWidgetsIn(CringeDisplay.listOfAllWidgets)
     
-    listOfAllInteractibleWidgets: CringeWidgets.InteractibleWidget = [
-        CringeWidgets.ToggleButton(screen=screen,
-                                   name=modes[0],
-                                   position=[0,0],
-                                   text=" Normal",
-                                   style="bordered"),
-        CringeWidgets.ToggleButton(screen=screen,
-                                   name=modes[1],
-                                   position=[10,0],
-                                   text=" Insert",
-                                   style="bordered"),
-        CringeWidgets.ToggleButton(screen=screen,
-                                   name=modes[2],
-                                   position=[20,0],
-                                   text="麗​ Visual",
-                                   style="bordered"),
-        CringeWidgets.ToggleButton(screen=screen,
-                                   name=modes[3],
-                                   position=[31,0],
-                                   text="金​ Play",
-                                   style="bordered"),
-    ]
-
-    statusBar = CringeWidgets.StatusBar(screen=screen,
-                                        name="statusBar",
-                                        justification="left",
-                                        color=1)
-
-    listOfAllWidgetsInDaProgram: CringeWidgets.Widget = [
-        statusBar
-    ] + listOfAllInteractibleWidgets
-
     while True:
         
-        event = screen.getch()
+        event = CringeDisplay.screen.getch()
         
         if event == nc.KEY_MOUSE:
             event = nc.getmouse()
             eventPosition = event[1:3]
             event = event[4]
             
-            for widget in listOfAllInteractibleWidgets:
+            for widget in CringeDisplay.listOfAllInteractibleWidgets:
                 if widget.clicked(event, eventPosition):
-                    pass
+                    
+                    if widget.name == "exit":
+                        CringeDisplay.endCringeMidi(CringeDisplay.screen)
+                    elif widget in CringeDisplay.listOfModeButtons:
+                        CringeDisplay.updateActiveMode(widget.name, CringeDisplay.listOfModeButtons)
 
-        if nc.is_term_resized(screenSize[0], screenSize[1]):
-            screen.clear()
-            screenSize = screen.getmaxyx()
-            
-            for widget in listOfAllWidgetsInDaProgram:
-                widget.draw()
-            
-        i += 1
-        statusBar.updateText(f"Counter = {i}")
+        elif event == 27 and CringeDisplay.activeMode != "normal":
+            CringeDisplay.updateActiveMode("normal", CringeDisplay.listOfModeButtons)
+        elif event == ord("i"):
+            CringeDisplay.updateActiveMode("insert", CringeDisplay.listOfModeButtons)
+        elif event == ord("v"):
+            CringeDisplay.updateActiveMode("visual", CringeDisplay.listOfModeButtons)
+        elif event == ord("m"):
+            CringeDisplay.updateActiveMode("play", CringeDisplay.listOfModeButtons)
 
-if __name__ == "__main__":
-    nc.wrapper(main)
+        if nc.is_term_resized(CringeDisplay.screenSize[0], CringeDisplay.screenSize[1]):
+            CringeDisplay.screen.clear()
+            CringeDisplay.screenSize = CringeDisplay.screen.getmaxyx()
+            
+            CringeWidgets.drawAllWidgetsIn(CringeDisplay.listOfAllWidgets)
+            
+        # statusBar.updateText(f"")

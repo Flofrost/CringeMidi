@@ -1,10 +1,13 @@
 from __future__ import annotations
 import curses as nc
 from abc import ABCMeta, abstractmethod
-from turtle import st
 
 from CringeMidi import *
 from CringeMisc import *
+
+def drawAllWidgetsIn(widgetList:list[Widget]) -> None:
+    for w in widgetList:
+        w.draw()
 
 class Widget(metaclass=ABCMeta):
 
@@ -40,14 +43,14 @@ class InteractibleWidget(Widget, metaclass=ABCMeta):
     def clicked(self, clickType:int, clickPosition:list[int, int]) -> bool:
         pass
 
-class ToggleButton(InteractibleWidget):
+class Button(InteractibleWidget):
 
     def __init__(self,
                  screen: nc._CursesWindow,
                  name: str,
+                 text: str = "Button",
                  position: list[int, int] = [0, 0],
                  respondsTo: int = nc.BUTTON1_CLICKED,
-                 text: str = "Button",
                  style: str = "text",
                  color: int = 0) -> None:
 
@@ -65,9 +68,40 @@ class ToggleButton(InteractibleWidget):
         self.style = style
         self.color = color
         self.respondsTo = respondsTo
-        self.state = False
+
+    def __str__(self) -> str:
+        return self.text
+
+    def draw(self):
+        if self.style == "text":
+            self.screen.addstr(self.position[1], self.position[0], self.text, self.color)
+        elif self.style == "bordered":
+            topbot = "─" * len(self.text)
+            self.screen.addstr(self.position[1], self.position[0], "┌" + topbot + "┐", self.color)
+            self.screen.addstr(self.position[1] + 1, self.position[0], "│" + self.text + "│", self.color)
+            self.screen.addstr(self.position[1] + 2, self.position[0], "└" + topbot + "┘", self.color)
+
+    def clicked(self, clickType: int, clickPosition: list[int, int]) -> bool:
+        if clickType == self.respondsTo:
+            relPos = subPos(clickPosition, self.position)
+            if (relPos[0] >= 0) and (relPos[1] >= 0) and (relPos[0] < self.size[0]) and (relPos[1] < self.size[1]):
+                return True
+        return False
+
+class ToggleButton(Button):
+
+    def __init__(self,
+                 screen: nc._CursesWindow,
+                 name: str,
+                 text: str = "Toggle",
+                 position: list[int, int] = [0, 0],
+                 respondsTo: int = nc.BUTTON1_CLICKED,
+                 style: str = "text",
+                 color: int = 0) -> None:
         
-        self.draw()
+        super().__init__(screen, name, text, position, respondsTo, style, color)
+
+        self.state = False
         
     def draw(self):
         color = (self.color | nc.A_REVERSE) if self.state else self.color
@@ -103,8 +137,6 @@ class StatusBar(Widget):
         self.text = text
         self.color = color
         self.justification = justification
-        
-        self.draw()
         
     def draw(self):
         self.position = [0, self.screen.getmaxyx()[0]-1]
