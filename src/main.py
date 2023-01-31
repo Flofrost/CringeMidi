@@ -19,7 +19,8 @@ if __name__ == "__main__":
     CringeDisplay.screen.nodelay(1)
     CringeDisplay.screen.timeout(20)
     
-    CringeDisplay.updateActiveMode("normal", CringeDisplay.listOfModeButtons)
+    CringeDisplay.activeMode = CringeDisplay.updateActiveMode("normal", CringeDisplay.listOfModeButtons)
+    CringeDisplay.resetWidgetsPosition()
     CringeWidgets.drawAllWidgetsIn(CringeDisplay.listOfAllWidgets)
     
     while True:
@@ -51,7 +52,20 @@ if __name__ == "__main__":
         if nc.is_term_resized(CringeDisplay.screenSize[0], CringeDisplay.screenSize[1]):
             CringeDisplay.screen.clear()
             CringeDisplay.screenSize = CringeDisplay.screen.getmaxyx()
+            minSize = CringeDisplay.getRequieredSize()
+            minW = CringeDisplay.screenSize[1] - minSize[0]
+            minH = CringeDisplay.screenSize[0] - minSize[1]
             
+            while minW < 0 or minH < 0:
+                CringeDisplay.screenSize = CringeDisplay.screen.getmaxyx()
+                minSize = CringeDisplay.getRequieredSize()
+                minW = CringeDisplay.screenSize[1] - minSize[0]
+                minH = CringeDisplay.screenSize[0] - minSize[1]
+
+                CringeDisplay.screen.addch(0, 0, "")
+                CringeDisplay.screen.refresh()
+
+            CringeDisplay.resetWidgetsPosition()
             CringeWidgets.drawAllWidgetsIn(CringeDisplay.listOfAllWidgets)
             
-        # statusBar.updateText(f"")
+        CringeDisplay.statusBar.updateText(f"W:{CringeDisplay.screenSize[1]}, H:{CringeDisplay.screenSize[0]}")
