@@ -10,12 +10,6 @@ import CringeWidgets
 
 if __name__ == "__main__":
 
-    if nc.has_colors():
-        nc.use_default_colors()
-        nc.init_pair(1, 135, -1)
-
-    nc.mousemask(-1)
-
     CringeDisplay.screen.nodelay(1)
     CringeDisplay.screen.timeout(20)
     
@@ -36,18 +30,18 @@ if __name__ == "__main__":
                 if widget.clicked(event, eventPosition):
                     
                     if widget.name == "exit":
-                        CringeDisplay.endCringeMidi(CringeDisplay.screen)
+                        CringeDisplay.terminationJudgement()
                     elif widget in CringeDisplay.listOfModeButtons:
                         CringeDisplay.updateActiveMode(widget.name, CringeDisplay.listOfModeButtons)
 
         elif event == 27 and CringeDisplay.activeMode != "normal":
-            CringeDisplay.updateActiveMode("normal", CringeDisplay.listOfModeButtons)
+            CringeDisplay.activeMode = CringeDisplay.updateActiveMode("normal", CringeDisplay.listOfModeButtons)
         elif event == ord("i"):
-            CringeDisplay.updateActiveMode("insert", CringeDisplay.listOfModeButtons)
+            CringeDisplay.activeMode = CringeDisplay.updateActiveMode("insert", CringeDisplay.listOfModeButtons)
         elif event == ord("v"):
-            CringeDisplay.updateActiveMode("visual", CringeDisplay.listOfModeButtons)
+            CringeDisplay.activeMode = CringeDisplay.updateActiveMode("visual", CringeDisplay.listOfModeButtons)
         elif event == ord("m"):
-            CringeDisplay.updateActiveMode("play", CringeDisplay.listOfModeButtons)
+            CringeDisplay.activeMode = CringeDisplay.updateActiveMode("play", CringeDisplay.listOfModeButtons)
 
         if nc.is_term_resized(CringeDisplay.screenSize[0], CringeDisplay.screenSize[1]):
             CringeDisplay.screen.clear()

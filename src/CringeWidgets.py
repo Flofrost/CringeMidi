@@ -47,7 +47,7 @@ class Line(Widget):
 
     def __init__(self,
                  screen: nc._CursesWindow,
-                 name: str,
+                 name: str = generateUID(),
                  position: list[int, int] = [0, 0],
                  size: list[int, int] = [0, 1],
                  color: int = 0) -> None:
@@ -63,10 +63,17 @@ class Line(Widget):
         if self.size[0]:
             for i in range(self.size[0]):
                 relPos = self.position[0] + i
-                if self.screen.inch(self.position[1], self.position[0] + i):
-                    pass
+                if chr(self.screen.inch(self.position[1], relPos)) == "│":
+                    self.screen.addch(self.position[1], relPos, "┼")
+                else:
+                    self.screen.addch(self.position[1], relPos, "─")
         else:
-            pass
+            for j in range(self.size[1]):
+                relPos = self.position[1] + j
+                if chr(self.screen.inch(relPos, self.position[0])) == "─":
+                    self.screen.addch(relPos, self.position[0], "┼")
+                else:
+                    self.screen.addch(relPos, self.position[0], "│")
 
 class Button(InteractibleWidget):
 
@@ -99,7 +106,7 @@ class Button(InteractibleWidget):
 
     def draw(self):
         if self.style == "text":
-            self.screen.addstr(self.position[1], self.position[0], self.text, self.color)
+            self.screen.addstr(self.position[1], self.position[0], self.text, 2)
         elif self.style == "bordered":
             topbot = "─" * len(self.text)
             self.screen.addstr(self.position[1], self.position[0], "┌" + topbot + "┐", self.color)
