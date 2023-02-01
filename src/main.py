@@ -38,9 +38,7 @@ if __name__ == "__main__":
             CringeDisplay.activeMode = CringeDisplay.updateActiveMode("normal", CringeDisplay.listOfModeButtons)
         elif event == ord("i"):
             CringeDisplay.activeMode = CringeDisplay.updateActiveMode("insert", CringeDisplay.listOfModeButtons)
-        elif event == ord("v"):
-            CringeDisplay.activeMode = CringeDisplay.updateActiveMode("visual", CringeDisplay.listOfModeButtons)
-        elif event == ord("m"):
+        elif event == ord("M"):
             CringeDisplay.activeMode = CringeDisplay.updateActiveMode("play", CringeDisplay.listOfModeButtons)
 
         if nc.is_term_resized(CringeDisplay.screenSize[0], CringeDisplay.screenSize[1]):
@@ -62,4 +60,4 @@ if __name__ == "__main__":
             CringeDisplay.resetWidgetsPosition()
             CringeWidgets.drawAllWidgetsIn(CringeDisplay.listOfAllWidgets)
             
-        CringeDisplay.statusBar.updateText(f"W:{CringeDisplay.screenSize[1]}, H:{CringeDisplay.screenSize[0]}")
+        CringeDisplay.statusBar.updateText(f"")

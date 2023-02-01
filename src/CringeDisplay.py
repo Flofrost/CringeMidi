@@ -16,7 +16,7 @@ def initCringeMidi() -> nc._CursesWindow:
     if nc.has_colors():
         nc.start_color()
         nc.use_default_colors()
-        nc.init_pair(1,  12, 20) # blue
+        nc.init_pair(1,  39, -1) # blue
         nc.init_pair(2, 135, -1) # purple
 
     nc.mousemask(-1)
@@ -44,16 +44,10 @@ def updateActiveMode(newMode:str, widgetsToUpdate:list[ToggleButton]) -> str:
     return newMode
 
 def getRequieredSize() -> list[int, int]:
-    return [
-        normalModeButton.size[0] + 
-        insertModeButton.size[0] +
-        visualModeButton.size[0] +
-        playModeButton.size[0]   +
-        projectSettingsButton.size[0]   +
-        exitButton.size[0]   +
-        7
-        , 7
-    ]
+    sum = 0
+    for w in listOfModeButtons:
+        sum += w.size[0]
+    return [sum + 7, 7]
 ### Definition of display functions###
 
 
@@ -73,23 +67,22 @@ insertModeButton = ToggleButton(screen=screen,
                                 name="insert",
                                 text=" Insert",
                                 color=1)
-visualModeButton = ToggleButton(screen=screen,
-                                name="visual",
-                                text="麗​Visual",
-                                color=1)
 playModeButton = ToggleButton(screen=screen,
                               name="play",
                               text="金​Play",
                               color=1)
-
-projectSettingsButton = Button(screen=screen,
-                               name="projectSettings",
-                               text="煉​Project",
-                               color=1)
-exitButton = Button(screen=screen,
-                    name="exit",
-                    text=" Exit",
-                    color=1)
+projectSettingsButton = ToggleButton(screen=screen,
+                                     name="projectSettings",
+                                     text="煉​Project",
+                                     color=1)
+helpButton = ToggleButton(screen=screen,
+                          name="help",
+                          text=" Help",
+                          color=1)
+exitButton = ToggleButton(screen=screen,
+                          name="exit",
+                          text=" Exit",
+                          color=1)
 
 statusBar = StatusBar(screen=screen,
                       name="statusBar",
@@ -101,13 +94,14 @@ statusBar = StatusBar(screen=screen,
 listOfModeButtons: list[ToggleButton] = [
     normalModeButton,
     insertModeButton,
-    visualModeButton,
-    playModeButton
+    playModeButton,
+    projectSettingsButton,
+    helpButton,
+    exitButton
 ]
 
+
 listOfAllInteractibleWidgets: list[InteractibleWidget] = [
-    projectSettingsButton,
-    exitButton
 ] + listOfModeButtons
 
 listOfAllWidgets: list[Widget] = [
@@ -119,13 +113,13 @@ listOfAllWidgets: list[Widget] = [
 def resetWidgetsPosition() -> None:
     normalModeButton.position      = [1,0]
     insertModeButton.position      = [normalModeButton.position[0] + normalModeButton.size[0] + 1, 0]
-    visualModeButton.position      = [insertModeButton.position[0] + insertModeButton.size[0] + 1, 0]
-    playModeButton.position        = [visualModeButton.position[0] + visualModeButton.size[0] + 1, 0]
+    playModeButton.position        = [insertModeButton.position[0] + insertModeButton.size[0] + 1, 0]
 
     exitButton.position            = [screenSize[1] - exitButton.size[0] - 1, 0]
-    projectSettingsButton.position = [exitButton.position[0] - projectSettingsButton.size[0] - 1, 0]
+    helpButton.position            = [exitButton.position[0] - helpButton.size[0] - 1, 0]
+    projectSettingsButton.position = [helpButton.position[0] - projectSettingsButton.size[0] - 1, 0]
     
-    drawAllWidgetsIn([
+    drawAllWidgetsIn([ # Decorative lines
         Line(screen=screen,
              position=[0, 1],
              size=[screenSize[1], 0]),
@@ -139,19 +133,37 @@ def resetWidgetsPosition() -> None:
              position=[insertModeButton.position[0] + insertModeButton.size[0], 0],
              size=[0, 2]),
         Line(screen=screen,
-             position=[visualModeButton.position[0] + visualModeButton.size[0], 0],
-             size=[0, 2]),
-        Line(screen=screen,
              position=[playModeButton.position[0] + playModeButton.size[0], 0],
              size=[0, 2]),
         Line(screen=screen,
              position=[projectSettingsButton.position[0] - 1, 0],
              size=[0, 2]),
         Line(screen=screen,
+             position=[helpButton.position[0] - 1, 0],
+             size=[0, 2]),
+        Line(screen=screen,
              position=[exitButton.position[0] - 1, 0],
              size=[0, 2]),
         Line(screen=screen,
              position=[screenSize[1] - 1, 0],
-             size=[0, 2])
+             size=[0, 2]),
+        Line(screen=screen,
+             position=[0,3],
+             size=[screenSize[1],0])
     ])
+    
+    for row in range(screenSize[0]):
+        for col in range(screenSize[1]):
+            if chr(screen.inch(row, col)) == "┼":
+                index = 0
+                if row > 0 and chr(screen.inch(row - 1, col)) in ("┼", "│"):
+                    index += 1
+                if col > 0 and chr(screen.inch(row, col - 1)) in ("┼", "─"):
+                    index += 2
+                if row < screenSize[0] - 1 and chr(screen.inch(row + 1, col)) in ("┼", "│"):
+                    index += 4
+                if col < screenSize[1] - 1 and chr(screen.inch(row, col + 1)) in ("┼", "─"):
+                    index += 8
+                #                        0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
+                screen.addch(row, col, (" ", " ", " ", "┘", " ", "│", "┐", "┤", " ", "└", "─", "┴", "┌", "├", "┬", "┼")[index])
 ### Definition of layout ###

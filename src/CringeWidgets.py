@@ -64,17 +64,17 @@ class Line(Widget):
             for i in range(self.size[0]):
                 relPos = self.position[0] + i
                 if chr(self.screen.inch(self.position[1], relPos)) == "│":
-                    self.screen.addch(self.position[1], relPos, "┼")
+                    self.screen.addch(self.position[1], relPos, "┼", nc.color_pair(self.color))
                 else:
-                    self.screen.addch(self.position[1], relPos, "─")
+                    self.screen.addch(self.position[1], relPos, "─", nc.color_pair(self.color))
         else:
             for j in range(self.size[1]):
                 relPos = self.position[1] + j
                 if chr(self.screen.inch(relPos, self.position[0])) == "─":
-                    self.screen.addch(relPos, self.position[0], "┼")
+                    self.screen.addch(relPos, self.position[0], "┼", nc.color_pair(self.color))
                 else:
-                    self.screen.addch(relPos, self.position[0], "│")
-
+                    self.screen.addch(relPos, self.position[0], "│", nc.color_pair(self.color))
+                    
 class Button(InteractibleWidget):
 
     def __init__(self,
@@ -106,12 +106,12 @@ class Button(InteractibleWidget):
 
     def draw(self):
         if self.style == "text":
-            self.screen.addstr(self.position[1], self.position[0], self.text, 2)
+            self.screen.addstr(self.position[1], self.position[0], self.text, nc.color_pair(self.color))
         elif self.style == "bordered":
             topbot = "─" * len(self.text)
-            self.screen.addstr(self.position[1], self.position[0], "┌" + topbot + "┐", self.color)
-            self.screen.addstr(self.position[1] + 1, self.position[0], "│" + self.text + "│", self.color)
-            self.screen.addstr(self.position[1] + 2, self.position[0], "└" + topbot + "┘", self.color)
+            self.screen.addstr(self.position[1], self.position[0], "┌" + topbot + "┐", nc.color_pair(self.color))
+            self.screen.addstr(self.position[1] + 1, self.position[0], "│" + self.text + "│", nc.color_pair(self.color))
+            self.screen.addstr(self.position[1] + 2, self.position[0], "└" + topbot + "┘", nc.color_pair(self.color))
 
     def clicked(self, clickType: int, clickPosition: list[int, int]) -> bool:
         if clickType == self.respondsTo:
@@ -136,7 +136,7 @@ class ToggleButton(Button):
         self.state = False
         
     def draw(self):
-        color = (self.color | nc.A_REVERSE) if self.state else self.color
+        color = (nc.color_pair(self.color) | nc.A_REVERSE) if self.state else nc.color_pair(self.color)
         if self.style == "text":
             self.screen.addstr(self.position[1], self.position[0], self.text, color)
         elif self.style == "bordered":
@@ -159,12 +159,11 @@ class StatusBar(Widget):
     def __init__(self, 
                  screen: nc._CursesWindow,
                  name: str,
-                 position: list[int, int] = [0, 0],
                  text: str = "",
                  justification: str = "left",
                  color: int = 0) -> None:
         
-        super().__init__(screen, name, position, color)
+        super().__init__(screen, name, [0, 0], color)
 
         self.text = text
         self.color = color
@@ -177,7 +176,7 @@ class StatusBar(Widget):
 
         if self.justification == "left":
             text = self.text + " " * (self.screen.getmaxyx()[1] - len(self.text) - 1)
-            self.screen.addstr(self.position[1], self.position[0], text, nc.color_pair(self.color) | nc.A_REVERSE)
+            self.screen.addstr(self.position[1], 0, text, nc.color_pair(self.color) | nc.A_REVERSE)
         elif self.justification == "center":
             textMid = len(self.text) // 2
             screenMid = self.screen.getmaxyx()[1] // 2
