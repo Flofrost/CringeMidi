@@ -31,20 +31,23 @@ if __name__ == "__main__":
                     
                     if widget.name == "exit":
                         CringeDisplay.terminationJudgement()
-                    elif widget in CringeDisplay.listOfModeButtons:
-                        CringeDisplay.updateActiveMode(widget.name, CringeDisplay.listOfModeButtons)
+                    # elif widget in CringeDisplay.listOfModeButtons:
+                    #     CringeDisplay.updateActiveMode(widget.name, CringeDisplay.listOfModeButtons)
 
         elif event == 27 and CringeDisplay.activeMode != "normal":
-            CringeDisplay.activeMode = CringeDisplay.updateActiveMode("normal", CringeDisplay.listOfModeButtons)
+            # CringeDisplay.activeMode = CringeDisplay.updateActiveMode("normal", CringeDisplay.listOfModeButtons)
+            pass
         elif event == ord("i"):
-            CringeDisplay.activeMode = CringeDisplay.updateActiveMode("insert", CringeDisplay.listOfModeButtons)
+            # CringeDisplay.activeMode = CringeDisplay.updateActiveMode("insert", CringeDisplay.listOfModeButtons)
+            pass
         elif event == ord("M"):
-            CringeDisplay.activeMode = CringeDisplay.updateActiveMode("play", CringeDisplay.listOfModeButtons)
+            # CringeDisplay.activeMode = CringeDisplay.updateActiveMode("play", CringeDisplay.listOfModeButtons)
+            pass
 
         if nc.is_term_resized(CringeDisplay.screenSize[0], CringeDisplay.screenSize[1]):
             CringeDisplay.screen.clear()
             CringeDisplay.screenSize = CringeDisplay.screen.getmaxyx()
-            minSize = CringeDisplay.getRequieredSize()
+            minSize = [CringeDisplay.mainToolbar.size[0], 7]
             minW = CringeDisplay.screenSize[1] - minSize[0]
             minH = CringeDisplay.screenSize[0] - minSize[1]
             

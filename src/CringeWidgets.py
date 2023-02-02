@@ -14,13 +14,13 @@ class Widget(metaclass=ABCMeta):
     def __init__(self,
                  screen:nc._CursesWindow,
                  name:str,
-                 position: list[int, int] = [0,0],
-                 size: list[int, int] = [1, 1]) -> None:
+                 position: list[int, int] = None,
+                 size: list[int, int] = None) -> None:
         
         self.screen = screen
         self.name = name
-        self.position = position
-        self.size = size
+        self.position = [0, 0] if position is None else position
+        self.size = [1, 1] if size is None else size
         
     @abstractmethod
     def draw(self):
@@ -31,9 +31,9 @@ class InteractibleWidget(Widget, metaclass=ABCMeta):
     def __init__(self,
                  screen: nc._CursesWindow,
                  name: str,
-                 position: list[int, int] = [0, 0],
+                 position: list[int, int] = None,
                  respondsTo: int = nc.BUTTON1_CLICKED,
-                 size: list[int, int] = [1, 1],
+                 size: list[int, int] = None,
                  enabled: bool = True) -> None:
         
         super().__init__(screen, name, position, size)
@@ -51,35 +51,39 @@ class Expander(Widget):
                  screen: nc._CursesWindow,
                  name: str = generateUID(),
                  filler: str = " ",
-                 position: list[int, int] = [0, 0],
-                 size: list[int, int] = [1, 1]) -> None:
+                 position: list[int, int] = None,
+                 size: list[int, int] = None) -> None:
         super().__init__(screen, name, position, size)
         
         self.filler = filler
 
     def __str__(self) -> str:
         return self.filler * self.size[0]
+    
+    def draw(self):
+        self.screen.addstr(self.position[1], self.position[0], str(self))
 
 class Line(Widget):
 
     def __init__(self,
                  screen: nc._CursesWindow,
                  name: str = generateUID(),
-                 position: list[int, int] = [0, 0],
-                 size: list[int, int] = [1, 1],
+                 position: list[int, int] = None,
+                 size: list[int, int] = None,
                  color: int = 0) -> None:
         
-        super().__init__(screen, name, position, size)
-        
-        if size[0] ^ size[1]:
+        if (size[0] == 1 or size[1] == 1) and not (size[0] == 1 and size[1] == 1):
             self.size = size
+            self.__dir = False if size[0] == 1 else True
         else:
             raise Exception("Size does not describe a stricly horizontal or vertical line")
 
+        super().__init__(screen, name, position, size)
+        
         self.color = color
         
     def draw(self):
-        if self.size[0]:
+        if self.__dir:
             for i in range(self.size[0]):
                 relPos = self.position[0] + i
                 if chr(self.screen.inch(self.position[1], relPos)) == "│":
@@ -100,9 +104,9 @@ class Button(InteractibleWidget):
                  screen: nc._CursesWindow,
                  name: str,
                  text: str = "Button",
-                 position: list[int, int] = [0, 0],
+                 position: list[int, int] = None,
                  respondsTo: int = nc.BUTTON1_CLICKED,
-                 size: list[int, int] = [1, 1],
+                 size: list[int, int] = None,
                  style: str = "text",
                  color: int = 0,
                  enabled: bool = True) -> None:
@@ -146,8 +150,8 @@ class ToggleButton(Button):
                  screen: nc._CursesWindow,
                  name: str,
                  text: str = "Button",
-                 position: list[int, int] = [0, 0],
-                 size: list[int, int] = [1, 1],
+                 position: list[int, int] = None,
+                 size: list[int, int] = None,
                  respondsTo: int = nc.BUTTON1_CLICKED,
                  style: str = "text",
                  color: int = 0,
@@ -182,7 +186,7 @@ class Toolbar(Widget):
                  screen: nc._CursesWindow,
                  name: str,
                  contents: list[Widget],
-                 position: list[int, int] = [0, 0],
+                 position: list[int, int] = None,
                  layoutVertical: bool = False) -> None:
         
         size = 0

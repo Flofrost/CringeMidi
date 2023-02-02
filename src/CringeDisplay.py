@@ -50,36 +50,51 @@ screenSize = screen.getmaxyx()
 
 
 ### Creation of widgets ###
-mainToolbarWidgetList = [
-    ToggleButton(screen=screen,
-                 name="normal",
-                 text=" Normal",
-                 color=1),
-    ToggleButton(screen=screen,
-                 name="insert",
-                 text=" Insert",
-                 color=1),
-    ToggleButton(screen=screen,
-                 name="play",
-                 text="金​Play",
-                 color=1),
-    ToggleButton(screen=screen,
-                 name="projectSettings",
-                 text="煉​Project",
-                 color=1),
-    ToggleButton(screen=screen,
-                 name="help",
-                 text=" Help",
-                 color=1),
-    Button(screen=screen,
-            name="exit",
-            text=" Exit",
-            color=1),
-]
-
 mainToolbar = Toolbar(screen=screen,
                       name="mainToolbar",
-                      contents=mainToolbarWidgetList,
+                      contents=[
+                        Line(screen=screen,
+                             size=[1, 2]),
+                        ToggleButton(screen=screen,
+                                     name="normal",
+                                     text=" Normal",
+                                     color=1),
+                        Line(screen=screen,
+                             size=[1, 2]),
+                        ToggleButton(screen=screen,
+                                     name="insert",
+                                     text=" Insert",
+                                     color=1),
+                        Line(screen=screen,
+                             size=[1, 2]),
+                        ToggleButton(screen=screen,
+                                     name="play",
+                                     text="金​Play",
+                                     color=1),
+                        Line(screen=screen,
+                             size=[1, 2]),
+                        Expander(screen=screen),
+                        Line(screen=screen,
+                             size=[1, 2]),
+                        ToggleButton(screen=screen,
+                                     name="projectSettings",
+                                     text="煉​Project",
+                                     color=1),
+                        Line(screen=screen,
+                             size=[1, 2]),
+                        ToggleButton(screen=screen,
+                                     name="help",
+                                     text=" Help",
+                                     color=1),
+                        Line(screen=screen,
+                             size=[1, 2]),
+                        Button(screen=screen,
+                                name="exit",
+                                text=" Exit",
+                                color=1),
+                        Line(screen=screen,
+                             size=[1, 2]),
+                      ],
                       position=[0,0])
 
 undoButton = Button(screen=screen,
@@ -106,20 +121,23 @@ listOfAllInteractibleWidgets: list[InteractibleWidget] = [
 ] + mainToolbar.interactibles
 
 listOfAllWidgets: list[Widget] = [
+    mainToolbar,
     statusBar
-] + listOfAllInteractibleWidgets
+]
 ### Compositions of widget lists ###
 
 ### Definition of layout ###
 def updateWidgetsPosition() -> None:
+    
+    mainToolbar.updateWidgetsPosition()
 
     drawAllWidgetsIn([ # Decorative lines
         Line(screen=screen,
-             position=[screenSize[1] - 1, 0],
-             size=[0, 2]),
+             position=[0,1],
+             size=[screenSize[1],1]),
         Line(screen=screen,
              position=[0,3],
-             size=[screenSize[1],0])
+             size=[screenSize[1],1])
     ])
     
     for row in range(screenSize[0]):
