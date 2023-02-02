@@ -15,12 +15,12 @@ class Widget(metaclass=ABCMeta):
                  screen:nc._CursesWindow,
                  name:str,
                  position: list[int, int] = [0,0],
-                 color: int = 0) -> None:
+                 size: list[int, int] = [1, 1]) -> None:
         
         self.screen = screen
         self.name = name
         self.position = position
-        self.color = color
+        self.size = size
         
     @abstractmethod
     def draw(self):
@@ -33,15 +33,32 @@ class InteractibleWidget(Widget, metaclass=ABCMeta):
                  name: str,
                  position: list[int, int] = [0, 0],
                  respondsTo: int = nc.BUTTON1_CLICKED,
-                 color: int = 0) -> None:
-
-        super().__init__(screen, name, position, color)
+                 size: list[int, int] = [1, 1],
+                 enabled: bool = True) -> None:
+        
+        super().__init__(screen, name, position, size)
 
         self.respondsTo = respondsTo
+        self.enabled = enabled
         
     @abstractmethod
     def clicked(self, clickType:int, clickPosition:list[int, int]) -> bool:
         pass
+
+class Expander(Widget):
+    
+    def __init__(self,
+                 screen: nc._CursesWindow,
+                 name: str = generateUID(),
+                 filler: str = " ",
+                 position: list[int, int] = [0, 0],
+                 size: list[int, int] = [1, 1]) -> None:
+        super().__init__(screen, name, position, size)
+        
+        self.filler = filler
+
+    def __str__(self) -> str:
+        return self.filler * self.size[0]
 
 class Line(Widget):
 
@@ -49,15 +66,17 @@ class Line(Widget):
                  screen: nc._CursesWindow,
                  name: str = generateUID(),
                  position: list[int, int] = [0, 0],
-                 size: list[int, int] = [0, 1],
+                 size: list[int, int] = [1, 1],
                  color: int = 0) -> None:
-
-        super().__init__(screen, name, position, color)
+        
+        super().__init__(screen, name, position, size)
         
         if size[0] ^ size[1]:
             self.size = size
         else:
             raise Exception("Size does not describe a stricly horizontal or vertical line")
+
+        self.color = color
         
     def draw(self):
         if self.size[0]:
@@ -83,10 +102,10 @@ class Button(InteractibleWidget):
                  text: str = "Button",
                  position: list[int, int] = [0, 0],
                  respondsTo: int = nc.BUTTON1_CLICKED,
+                 size: list[int, int] = [1, 1],
                  style: str = "text",
-                 color: int = 0) -> None:
-
-        super().__init__(screen, name, position, respondsTo, color)
+                 color: int = 0,
+                 enabled: bool = True) -> None:
 
         if style == "text":
             size = [len(text), 1]
@@ -95,7 +114,8 @@ class Button(InteractibleWidget):
         else:
             raise Exception(f"'{style}' is not a recognized style")
 
-        self.size = size 
+        super().__init__(screen, name, position, respondsTo, size, enabled)
+
         self.text = text
         self.style = style
         self.color = color
@@ -114,7 +134,7 @@ class Button(InteractibleWidget):
             self.screen.addstr(self.position[1] + 2, self.position[0], "└" + topbot + "┘", nc.color_pair(self.color))
 
     def clicked(self, clickType: int, clickPosition: list[int, int]) -> bool:
-        if clickType == self.respondsTo:
+        if self.enabled and clickType == self.respondsTo:
             relPos = subPos(clickPosition, self.position)
             if (relPos[0] >= 0) and (relPos[1] >= 0) and (relPos[0] < self.size[0]) and (relPos[1] < self.size[1]):
                 return True
@@ -125,13 +145,15 @@ class ToggleButton(Button):
     def __init__(self,
                  screen: nc._CursesWindow,
                  name: str,
-                 text: str = "Toggle",
+                 text: str = "Button",
                  position: list[int, int] = [0, 0],
+                 size: list[int, int] = [1, 1],
                  respondsTo: int = nc.BUTTON1_CLICKED,
                  style: str = "text",
-                 color: int = 0) -> None:
-        
-        super().__init__(screen, name, text, position, respondsTo, style, color)
+                 color: int = 0,
+                 enabled: bool = True) -> None:
+
+        super().__init__(screen, name, text, position, respondsTo, size, style, color, enabled)
 
         self.state = False
         
@@ -146,7 +168,7 @@ class ToggleButton(Button):
             self.screen.addstr(self.position[1] + 2, self.position[0], "└" + topbot + "┘", color)
 
     def clicked(self, clickType: int, clickPosition: list[int, int]) -> bool:
-        if clickType == self.respondsTo:
+        if self.enabled and clickType == self.respondsTo:
             relPos = subPos(clickPosition, self.position)
             if (relPos[0] >= 0) and (relPos[1] >= 0) and (relPos[0] < self.size[0]) and (relPos[1] < self.size[1]):
                 self.state = not self.state
@@ -154,25 +176,87 @@ class ToggleButton(Button):
                 return True
         return False
     
-class StatusBar(Widget):
+class Toolbar(Widget):
+
+    def __init__(self,
+                 screen: nc._CursesWindow,
+                 name: str,
+                 contents: list[Widget],
+                 position: list[int, int] = [0, 0],
+                 layoutVertical: bool = False) -> None:
+        
+        size = 0
+        for w in contents:
+            size += w.size[int(layoutVertical)]
+                
+        size = [0, size] if layoutVertical else [size, 0]
+
+        super().__init__(screen, name, position, size)
+        
+        self.contents = contents
+        self.__layout = layoutVertical
+        
+        self.updateWidgetsPosition()
+        
+    def draw(self):
+        for w in self.contents:
+            w.draw()
+
+    def calculateExpanders(self):
+
+        listOfNonExpanders: list[Widget] = []
+        listOfExpanders: list[Expander] = []
+        for w in self.contents:
+            if isinstance(w, Expander):
+                listOfExpanders.append(w)
+            else:
+                listOfNonExpanders.append(w)
+                
+        if not len(listOfExpanders):
+            return
+        
+        sizeToFit = 0
+        for w in listOfNonExpanders:
+            sizeToFit += w.size[int(self.__layout)]
+        sizeToFit = self.screen.getmaxyx()[int(not self.__layout)] - sizeToFit
+            
+        expantionSize = sizeToFit // len(listOfExpanders)
+        for w in listOfExpanders:
+            w.size[0] = expantionSize
+                
+    def updateWidgetsPosition(self):
+        self.calculateExpanders()
+        self.contents[0].position = self.position
+
+        for i in range(1,len(self.contents)):
+            self.contents[i].position[int(self.__layout)] = self.contents[i-1].position[int(self.__layout)] + self.contents[i-1].size[int(self.__layout)]
+
+    def changeContents(self):
+        pass
+    
+    @property
+    def interactibles(self) -> list[InteractibleWidget]:
+        listOfInteractibles = []
+        for w in self.contents:
+            if isinstance(w, InteractibleWidget):
+                listOfInteractibles.append(w)
+        return listOfInteractibles
+
+class StatusBar():
 
     def __init__(self, 
                  screen: nc._CursesWindow,
-                 name: str,
                  text: str = "",
                  justification: str = "left",
                  color: int = 0) -> None:
         
-        super().__init__(screen, name, [0, 0], color)
-
+        self.screen = screen
         self.text = text
         self.color = color
         self.justification = justification
         
     def draw(self):
         self.position = [0, self.screen.getmaxyx()[0]-1]
-        self.screen.move(self.position[1], self.position[0])
-        self.screen.clrtoeol()
 
         if self.justification == "left":
             text = self.text + " " * (self.screen.getmaxyx()[1] - len(self.text) - 1)

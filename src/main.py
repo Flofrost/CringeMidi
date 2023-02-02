@@ -13,8 +13,8 @@ if __name__ == "__main__":
     CringeDisplay.screen.nodelay(1)
     CringeDisplay.screen.timeout(20)
     
-    CringeDisplay.activeMode = CringeDisplay.updateActiveMode("normal", CringeDisplay.listOfModeButtons)
-    CringeDisplay.resetWidgetsPosition()
+    CringeDisplay.activeMode = CringeDisplay.updateActiveMode("normal", None)
+    CringeDisplay.updateWidgetsPosition()
     CringeWidgets.drawAllWidgetsIn(CringeDisplay.listOfAllWidgets)
     
     while True:
@@ -50,14 +50,14 @@ if __name__ == "__main__":
             
             while minW < 0 or minH < 0:
                 CringeDisplay.screenSize = CringeDisplay.screen.getmaxyx()
-                minSize = CringeDisplay.getRequieredSize()
+                minSize = [CringeDisplay.mainToolbar.size[0], 7]
                 minW = CringeDisplay.screenSize[1] - minSize[0]
                 minH = CringeDisplay.screenSize[0] - minSize[1]
 
                 CringeDisplay.screen.addch(0, 0, "")
                 CringeDisplay.screen.refresh()
 
-            CringeDisplay.resetWidgetsPosition()
+            CringeDisplay.updateWidgetsPosition()
             CringeWidgets.drawAllWidgetsIn(CringeDisplay.listOfAllWidgets)
             
         CringeDisplay.statusBar.updateText(f"")
