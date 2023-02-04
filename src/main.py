@@ -13,9 +13,10 @@ if __name__ == "__main__":
     CringeDisplay.screen.nodelay(1)
     CringeDisplay.screen.timeout(20)
     
-    CringeDisplay.activeMode = CringeDisplay.updateActiveMode("normal", None)
+    CringeDisplay.activeMode = CringeDisplay.updateActiveMode("normal")
     CringeDisplay.updateWidgetsPosition()
     CringeWidgets.drawAllWidgetsIn(CringeDisplay.listOfAllWidgets)
+    CringeDisplay.fixDecorativeLines()
     
     while True:
         
@@ -31,18 +32,8 @@ if __name__ == "__main__":
                     
                     if widget.name == "exit":
                         CringeDisplay.terminationJudgement()
-                    # elif widget in CringeDisplay.listOfModeButtons:
-                    #     CringeDisplay.updateActiveMode(widget.name, CringeDisplay.listOfModeButtons)
-
-        elif event == 27 and CringeDisplay.activeMode != "normal":
-            # CringeDisplay.activeMode = CringeDisplay.updateActiveMode("normal", CringeDisplay.listOfModeButtons)
-            pass
-        elif event == ord("i"):
-            # CringeDisplay.activeMode = CringeDisplay.updateActiveMode("insert", CringeDisplay.listOfModeButtons)
-            pass
-        elif event == ord("M"):
-            # CringeDisplay.activeMode = CringeDisplay.updateActiveMode("play", CringeDisplay.listOfModeButtons)
-            pass
+                    elif widget in CringeDisplay.listOfModeButtons:
+                        CringeDisplay.updateActiveMode(widget.name)
 
         if nc.is_term_resized(CringeDisplay.screenSize[0], CringeDisplay.screenSize[1]):
             CringeDisplay.screen.clear()
@@ -62,5 +53,6 @@ if __name__ == "__main__":
 
             CringeDisplay.updateWidgetsPosition()
             CringeWidgets.drawAllWidgetsIn(CringeDisplay.listOfAllWidgets)
+            CringeDisplay.fixDecorativeLines()
             
         CringeDisplay.statusBar.updateText(f"")

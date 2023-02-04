@@ -37,8 +37,30 @@ def endCringeMidi(screen:nc._CursesWindow) -> None:
     nc.endwin()
     exit(0)
     
-def updateActiveMode(newMode:str, widgetsToUpdate:list[ToggleButton]) -> str:
+def updateActiveMode(newMode:str) -> str:
+    for w in listOfModeButtons:
+        if w.name == newMode:
+            w.state = True
+        else:
+            w.state = False
+        w.draw()
     return newMode
+
+def fixDecorativeLines():
+    for row in range(screenSize[0]):
+        for col in range(screenSize[1]):
+            if chr(screen.inch(row, col)) == "┼":
+                index = 0
+                if row > 0 and chr(screen.inch(row - 1, col)) in ("┼", "│"):
+                    index += 1
+                if col > 0 and chr(screen.inch(row, col - 1)) in ("┼", "─"):
+                    index += 2
+                if row < screenSize[0] - 1 and chr(screen.inch(row + 1, col)) in ("┼", "│"):
+                    index += 4
+                if col < screenSize[1] - 1 and chr(screen.inch(row, col + 1)) in ("┼", "─"):
+                    index += 8
+                #                        0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
+                screen.addch(row, col, (" ", " ", " ", "┘", " ", "│", "┐", "┤", " ", "└", "─", "┴", "┌", "├", "┬", "┼")[index])
 ### Definition of display functions###
 
 
@@ -112,6 +134,8 @@ statusBar = StatusBar(screen=screen,
 
 
 ### Compositions of widget lists ###
+listOfModeButtons = mainToolbar.interactibles[:-1]
+
 listOfNormalToolbar: list[Button] = [
     undoButton,
     redoButton
@@ -139,19 +163,4 @@ def updateWidgetsPosition() -> None:
              position=[0,3],
              size=[screenSize[1],1])
     ])
-    
-    for row in range(screenSize[0]):
-        for col in range(screenSize[1]):
-            if chr(screen.inch(row, col)) == "┼":
-                index = 0
-                if row > 0 and chr(screen.inch(row - 1, col)) in ("┼", "│"):
-                    index += 1
-                if col > 0 and chr(screen.inch(row, col - 1)) in ("┼", "─"):
-                    index += 2
-                if row < screenSize[0] - 1 and chr(screen.inch(row + 1, col)) in ("┼", "│"):
-                    index += 4
-                if col < screenSize[1] - 1 and chr(screen.inch(row, col + 1)) in ("┼", "─"):
-                    index += 8
-                #                        0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
-                screen.addch(row, col, (" ", " ", " ", "┘", " ", "│", "┐", "┤", " ", "└", "─", "┴", "┌", "├", "┬", "┼")[index])
 ### Definition of layout ###
