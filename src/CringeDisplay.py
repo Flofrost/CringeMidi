@@ -1,6 +1,9 @@
 from __future__ import annotations
 import curses as nc
 from signal import signal, SIGINT, SIGTERM
+
+from CringeGlobals import *
+from CringeModes import *
 from CringeWidgets import *
 
 
@@ -37,15 +40,6 @@ def endCringeMidi(screen:nc._CursesWindow) -> None:
     nc.endwin()
     exit(0)
     
-def updateActiveMode(newMode:str) -> str:
-    for w in listOfModeButtons:
-        if w.name == newMode:
-            w.state = True
-        else:
-            w.state = False
-        w.draw()
-    return newMode
-
 def fixDecorativeLines():
     for row in range(screenSize[0]):
         for col in range(screenSize[1]):
@@ -61,72 +55,120 @@ def fixDecorativeLines():
                     index += 8
                 #                        0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
                 screen.addch(row, col, (" ", " ", " ", "┘", " ", "│", "┐", "┤", " ", "└", "─", "┴", "┌", "├", "┬", "┼")[index])
+
+def redrawScreen() -> None:
+    screen.erase()
+    mainToolbar.draw()
+    
+    modes[activeMode]["drawFunction"]()
+
+    Line(
+        screen=screen,
+        position=[0,1],
+        size=[screenSize[1],1]
+    ).draw()
+    
+    fixDecorativeLines()
+    
+    
 ### Definition of display functions###
 
 
 ### Initialisation of NCurses ###
-activeMode = "normal"
 screen = initCringeMidi()
 screenSize = screen.getmaxyx()
 ### Initialisation of NCurses ###
 
 
 ### Creation of widgets ###
-mainToolbar = Toolbar(screen=screen,
-                      name="mainToolbar",
-                      contents=[
-                        Line(screen=screen,
-                             size=[1, 2]),
-                        ToggleButton(screen=screen,
-                                     name="normal",
-                                     text=" Normal",
-                                     color=1),
-                        Line(screen=screen,
-                             size=[1, 2]),
-                        ToggleButton(screen=screen,
-                                     name="insert",
-                                     text=" Insert",
-                                     color=1),
-                        Line(screen=screen,
-                             size=[1, 2]),
-                        ToggleButton(screen=screen,
-                                     name="play",
-                                     text="金​Play",
-                                     color=1),
-                        Line(screen=screen,
-                             size=[1, 2]),
-                        Expander(screen=screen),
-                        Line(screen=screen,
-                             size=[1, 2]),
-                        ToggleButton(screen=screen,
-                                     name="projectSettings",
-                                     text="煉​Project",
-                                     color=1),
-                        Line(screen=screen,
-                             size=[1, 2]),
-                        ToggleButton(screen=screen,
-                                     name="help",
-                                     text=" Help",
-                                     color=1),
-                        Line(screen=screen,
-                             size=[1, 2]),
-                        Button(screen=screen,
-                                name="exit",
-                                text=" Exit",
-                                color=1),
-                        Line(screen=screen,
-                             size=[1, 2]),
-                      ],
-                      position=[0,0])
+mainToolbar = Toolbar(
+    screen=screen,
+    name="mainToolbar",
+    position=[0, 0],
+    contents=[
+        Line(
+            screen=screen,
+            size=[1, 2]
+        ), ToggleButton(
+            screen=screen,
+            name="normal",
+            text=" Normal",
+            color=1
+        ), Line(
+            screen=screen,
+            size=[1, 2]
+        ), ToggleButton(
+            screen=screen,
+            name="insert",
+            text=" Insert",
+            color=1
+        ), Line(
+            screen=screen,
+            size=[1, 2]
+        ), ToggleButton(
+            screen=screen,
+            name="play",
+            text="金​Play",
+            color=1
+        ), Line(
+            screen=screen,
+            size=[1, 2]
+        ),
+        Expander(screen=screen),
+        Line(
+            screen=screen,
+            size=[1, 2]
+        ), ToggleButton(
+            screen=screen,
+            name="settings",
+            text="煉​Settings",
+            color=1
+        ), Line(
+            screen=screen,
+            size=[1, 2]
+        ), ToggleButton(
+            screen=screen,
+            name="help",
+            text=" Help",
+            color=1
+        ), Line(
+            screen=screen,
+            size=[1, 2]
+        ), Button(
+            screen=screen,
+            name="exit",
+            text=" Exit",
+            color=1
+        ), Line(
+            screen=screen,
+            size=[1, 2]
+        )
+    ])
 
-undoButton = Button(screen=screen,
-                    name="undo",
-                    text="社",
-                    enabled=False)
-redoButton = Button(screen=screen,
-                    name="redo",
-                    text="漏",
-                    enabled=False)
+normalModeToolbar = Toolbar(
+    screen=screen,
+    name="normalToolbar",
+    position=[0, 2],
+    contents=[
+        Text(
+            screen=screen,
+            text=" ",
+        ) ,Button(
+            screen=screen,
+            name="undo",
+            text="社",
+            enabled=False
+        ), Text(
+            screen=screen,
+            text=" "
+        ), Button(
+            screen=screen,
+            name="redo",
+            text="漏",
+            enabled=False
+        )
+    ]
+)
 
 statusBar = StatusBar(screen=screen,
                       color=2)
@@ -136,31 +178,6 @@ statusBar = StatusBar(screen=screen,
 ### Compositions of widget lists ###
 listOfModeButtons = mainToolbar.interactibles[:-1]
 
-listOfNormalToolbar: list[Button] = [
-    undoButton,
-    redoButton
-]
-
 listOfAllInteractibleWidgets: list[InteractibleWidget] = [
 ] + mainToolbar.interactibles
-
-listOfAllWidgets: list[Widget] = [
-    mainToolbar,
-    statusBar
-]
 ### Compositions of widget lists ###
-
-### Definition of layout ###
-def updateWidgetsPosition() -> None:
-    
-    mainToolbar.updateWidgetsPosition()
-
-    drawAllWidgetsIn([ # Decorative lines
-        Line(screen=screen,
-             position=[0,1],
-             size=[screenSize[1],1]),
-        Line(screen=screen,
-             position=[0,3],
-             size=[screenSize[1],1])
-    ])
-### Definition of layout ###

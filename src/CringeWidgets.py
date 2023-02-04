@@ -23,7 +23,7 @@ class Widget(metaclass=ABCMeta):
         self.size = [1, 1] if size is None else size
         
     @abstractmethod
-    def draw(self):
+    def draw(self) -> None:
         pass
     
 class InteractibleWidget(Widget, metaclass=ABCMeta):
@@ -97,6 +97,23 @@ class Line(Widget):
                     self.screen.addch(relPos, self.position[0], "┼", nc.color_pair(self.color))
                 else:
                     self.screen.addch(relPos, self.position[0], "│", nc.color_pair(self.color))
+                    
+class Text(Widget):
+
+    def __init__(self,
+                 screen: nc._CursesWindow,
+                 name: str = generateUID(),
+                 text: str = "Text",
+                 position: list[int, int] = None,
+                 color: int = 0) -> None:
+
+        self.text = text
+        self.color = color
+
+        super().__init__(screen, name, position, [len(self.text), 1])
+    
+    def draw(self) -> None:
+        self.screen.addstr(self.position[1], self.position[0], self.text, nc.color_pair(self.color))
                     
 class Button(InteractibleWidget):
 
@@ -193,7 +210,7 @@ class Toolbar(Widget):
         for w in contents:
             size += w.size[int(layoutVertical)]
                 
-        size = [0, size] if layoutVertical else [size, 0]
+        size = [1, size] if layoutVertical else [size, 1]
 
         super().__init__(screen, name, position, size)
         
@@ -203,11 +220,11 @@ class Toolbar(Widget):
         self.updateWidgetsPosition()
         
     def draw(self):
+        self.updateWidgetsPosition()
         for w in self.contents:
             w.draw()
 
     def calculateExpanders(self):
-
         listOfNonExpanders: list[Widget] = []
         listOfExpanders: list[Expander] = []
         for w in self.contents:
@@ -234,6 +251,7 @@ class Toolbar(Widget):
 
         for i in range(1,len(self.contents)):
             self.contents[i].position[int(self.__layout)] = self.contents[i-1].position[int(self.__layout)] + self.contents[i-1].size[int(self.__layout)]
+            self.contents[i].position[int(not self.__layout)] = self.position[int(not self.__layout)]
 
     def changeContents(self):
         pass
