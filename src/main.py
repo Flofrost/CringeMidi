@@ -4,10 +4,7 @@ import curses as nc
 
 import CringeDisplay
 import CringeGlobals
-import CringeMidi
-import CringeMisc
 import CringeModes
-import CringeWidgets
 
 
 if __name__ == "__main__":
@@ -15,7 +12,7 @@ if __name__ == "__main__":
     CringeDisplay.screen.nodelay(1)
     CringeDisplay.screen.timeout(20)
     
-    CringeDisplay.updateActiveMode("normal")
+    CringeModes.updateActiveMode("normal")
     CringeDisplay.redrawScreen()
     CringeDisplay.fixDecorativeLines()
     
@@ -30,11 +27,12 @@ if __name__ == "__main__":
             
             for widget in CringeDisplay.listOfAllInteractibleWidgets:
                 if widget.clicked(event, eventPosition):
-                    
                     if widget.name == "exit":
                         CringeDisplay.terminationJudgement()
                     elif widget in CringeDisplay.listOfModeButtons:
                         CringeModes.updateActiveMode(widget.name)
+                    else:
+                        CringeGlobals.debugInfo = widget.name
         else:
             CringeGlobals.modes[CringeGlobals.activeMode]["eventHandler"](event)
 

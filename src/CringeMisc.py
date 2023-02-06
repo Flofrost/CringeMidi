@@ -6,7 +6,6 @@ freqencyTable = {"C":32.703, "D":36.708, "E":41.203, "F":43.654, "G":48.999, "A"
 def generateUID() -> str:
     return "".join([chr(randint(0x20, 0x7E)) for i in range(16)])
 
-
 def note2freq(noteStr:str) -> float:
     """
     Note format needs to be : XmO\n

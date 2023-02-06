@@ -2,8 +2,8 @@ from __future__ import annotations
 import curses as nc
 from abc import ABCMeta, abstractmethod
 
-from CringeMidi import *
-from CringeMisc import *
+import CringeGlobals
+import CringeMisc
 
 def drawAllWidgetsIn(widgetList:list[Widget]) -> None:
     for w in widgetList:
@@ -49,7 +49,7 @@ class Expander(Widget):
     
     def __init__(self,
                  screen: nc._CursesWindow,
-                 name: str = generateUID(),
+                 name: str = CringeMisc.generateUID(),
                  filler: str = " ",
                  position: list[int, int] = None,
                  size: list[int, int] = None) -> None:
@@ -67,7 +67,7 @@ class Line(Widget):
 
     def __init__(self,
                  screen: nc._CursesWindow,
-                 name: str = generateUID(),
+                 name: str = CringeMisc.generateUID(),
                  position: list[int, int] = None,
                  size: list[int, int] = None,
                  color: int = 0) -> None:
@@ -102,7 +102,7 @@ class Text(Widget):
 
     def __init__(self,
                  screen: nc._CursesWindow,
-                 name: str = generateUID(),
+                 name: str = CringeMisc.generateUID(),
                  text: str = "Text",
                  position: list[int, int] = None,
                  color: int = 0) -> None:
@@ -124,21 +124,13 @@ class Button(InteractibleWidget):
                  position: list[int, int] = None,
                  respondsTo: int = nc.BUTTON1_CLICKED,
                  size: list[int, int] = None,
-                 style: str = "text",
                  color: int = 0,
                  enabled: bool = True) -> None:
 
-        if style == "text":
-            size = [len(text), 1]
-        elif style == "bordered":
-            size = [len(text) + 2, 3]
-        else:
-            raise Exception(f"'{style}' is not a recognized style")
-
+        size = [len(text), 1]
         super().__init__(screen, name, position, respondsTo, size, enabled)
 
         self.text = text
-        self.style = style
         self.color = color
         self.respondsTo = respondsTo
 
@@ -146,17 +138,12 @@ class Button(InteractibleWidget):
         return self.text
 
     def draw(self):
-        if self.style == "text":
-            self.screen.addstr(self.position[1], self.position[0], self.text, nc.color_pair(self.color))
-        elif self.style == "bordered":
-            topbot = "─" * len(self.text)
-            self.screen.addstr(self.position[1], self.position[0], "┌" + topbot + "┐", nc.color_pair(self.color))
-            self.screen.addstr(self.position[1] + 1, self.position[0], "│" + self.text + "│", nc.color_pair(self.color))
-            self.screen.addstr(self.position[1] + 2, self.position[0], "└" + topbot + "┘", nc.color_pair(self.color))
+        color = nc.color_pair(self.color) if self.enabled else (nc.color_pair(CringeGlobals.CRINGE_COLOR_DSBL))
+        self.screen.addstr(self.position[1], self.position[0], self.text, color)
 
     def clicked(self, clickType: int, clickPosition: list[int, int]) -> bool:
         if self.enabled and clickType == self.respondsTo:
-            relPos = subPos(clickPosition, self.position)
+            relPos = CringeMisc.subPos(clickPosition, self.position)
             if (relPos[0] >= 0) and (relPos[1] >= 0) and (relPos[0] < self.size[0]) and (relPos[1] < self.size[1]):
                 return True
         return False
@@ -170,27 +157,20 @@ class ToggleButton(Button):
                  position: list[int, int] = None,
                  size: list[int, int] = None,
                  respondsTo: int = nc.BUTTON1_CLICKED,
-                 style: str = "text",
                  color: int = 0,
                  enabled: bool = True) -> None:
 
-        super().__init__(screen, name, text, position, respondsTo, size, style, color, enabled)
+        super().__init__(screen, name, text, position, respondsTo, size, color, enabled)
 
         self.state = False
         
     def draw(self):
         color = (nc.color_pair(self.color) | nc.A_REVERSE) if self.state else nc.color_pair(self.color)
-        if self.style == "text":
-            self.screen.addstr(self.position[1], self.position[0], self.text, color)
-        elif self.style == "bordered":
-            topbot = "─" * len(self.text)
-            self.screen.addstr(self.position[1], self.position[0], "┌" + topbot + "┐", color)
-            self.screen.addstr(self.position[1] + 1, self.position[0], "│" + self.text + "│", color)
-            self.screen.addstr(self.position[1] + 2, self.position[0], "└" + topbot + "┘", color)
+        self.screen.addstr(self.position[1], self.position[0], self.text, color)
 
     def clicked(self, clickType: int, clickPosition: list[int, int]) -> bool:
         if self.enabled and clickType == self.respondsTo:
-            relPos = subPos(clickPosition, self.position)
+            relPos = CringeMisc.subPos(clickPosition, self.position)
             if (relPos[0] >= 0) and (relPos[1] >= 0) and (relPos[0] < self.size[0]) and (relPos[1] < self.size[1]):
                 self.state = not self.state
                 self.draw()
