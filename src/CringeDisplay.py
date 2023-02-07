@@ -60,14 +60,14 @@ def redrawScreen() -> None:
     screen.erase()
     mainToolbar.draw()
     
-    CringeGlobals.modes[CringeGlobals.activeMode]["drawFunction"]()
-
-    CringeWidgets.Line(
+    CringeWidgets.HLine(
         screen=screen,
-        position=[0,1],
-        size=[screenSize[1],1]
+        position=[0, 1],
+        expand=True
     ).draw()
     
+    CringeGlobals.activeMode.drawFunction()
+
     fixDecorativeLines()
 ### Definition of display functions###
 
@@ -78,131 +78,73 @@ screenSize = screen.getmaxyx()
 ### Initialisation of NCurses ###
 
 
-### Creation of widgets ###
+### Creation of global widgets ###
 mainToolbar = CringeWidgets.Toolbar(
     screen=screen,
     name="mainToolbar",
     position=[0, 0],
     contents=[
-        CringeWidgets.Line(
+        CringeWidgets.VLine(
             screen=screen,
-            size=[1, 2]
+            size=2
         ), CringeWidgets.ToggleButton(
             screen=screen,
             name="normal",
             text=" Normal",
             color=CringeGlobals.CRINGE_COLOR_BLUE
-        ), CringeWidgets.Line(
+        ), CringeWidgets.VLine(
             screen=screen,
-            size=[1, 2]
+            size=2
         ), CringeWidgets.ToggleButton(
             screen=screen,
             name="insert",
             text=" Insert",
             color=CringeGlobals.CRINGE_COLOR_BLUE
-        ), CringeWidgets.Line(
+        ), CringeWidgets.VLine(
             screen=screen,
-            size=[1, 2]
+            size=2
         ), CringeWidgets.ToggleButton(
             screen=screen,
             name="play",
             text="金​Play",
             color=CringeGlobals.CRINGE_COLOR_BLUE
-        ), CringeWidgets.Line(
+        ), CringeWidgets.VLine(
             screen=screen,
-            size=[1, 2]
+            size=2
         ),
         CringeWidgets.Expander(screen=screen),
-        CringeWidgets.Line(
+        CringeWidgets.VLine(
             screen=screen,
-            size=[1, 2]
+            size=2
         ), CringeWidgets.ToggleButton(
             screen=screen,
             name="settings",
             text="煉​Settings",
             color=CringeGlobals.CRINGE_COLOR_BLUE
-        ), CringeWidgets.Line(
+        ), CringeWidgets.VLine(
             screen=screen,
-            size=[1, 2]
+            size=2
         ), CringeWidgets.ToggleButton(
             screen=screen,
             name="help",
             text=" Help",
             color=CringeGlobals.CRINGE_COLOR_BLUE
-        ), CringeWidgets.Line(
+        ), CringeWidgets.VLine(
             screen=screen,
-            size=[1, 2]
+            size=2
         ), CringeWidgets.Button(
             screen=screen,
             name="exit",
             text=" Exit",
             color=CringeGlobals.CRINGE_COLOR_BLUE
-        ), CringeWidgets.Line(
+        ), CringeWidgets.VLine(
             screen=screen,
-            size=[1, 2]
+            size=2
         )
     ])
 
-normalModeToolbar = CringeWidgets.Toolbar(
+statusBar = CringeWidgets.StatusBar(
     screen=screen,
-    name="normalToolbar",
-    position=[0, 2],
-    contents=[
-        CringeWidgets.Text(
-            screen=screen,
-            text=" ",
-        ), CringeWidgets.Button(
-            screen=screen,
-            name="undo",
-            text="社",
-            enabled=False
-        ), CringeWidgets.Text(
-            screen=screen,
-            text=" "
-        ), CringeWidgets.Button(
-            screen=screen,
-            name="redo",
-            text="漏",
-            enabled=False
-        )
-    ]
+    color=CringeGlobals.CRINGE_COLOR_PRPL
 )
-
-helpModeToolbar = CringeWidgets.Toolbar(
-    screen=screen,
-    name="helpToolbar",
-    position=[0, 2],
-    contents=[
-        CringeWidgets.Text(
-            screen=screen,
-            text=" "
-        ), CringeWidgets.Button(
-            screen=screen,
-            name="prev",
-            text="<"
-        ), CringeWidgets.Expander(screen=screen),
-        CringeWidgets.Text(
-            screen=screen,
-            name="sectionName"
-        ), CringeWidgets.Expander(screen=screen),
-        CringeWidgets.Button(
-            screen=screen,
-            name="next",
-            text=">"
-        ), CringeWidgets.Text(
-            screen=screen,
-            text=" "
-        )
-    ]
-)
-
-statusBar = CringeWidgets.StatusBar(screen=screen,
-                      color=CringeGlobals.CRINGE_COLOR_PRPL)
-### Creation of widgets ###
-
-
-### Compositions of widget lists ###
-listOfModeButtons = mainToolbar.interactibles[:-1]
-
-listOfAllInteractibleWidgets: list[CringeWidgets.InteractibleWidget] = mainToolbar.interactibles
-### Compositions of widget lists ###
+### Creation of global widgets ###

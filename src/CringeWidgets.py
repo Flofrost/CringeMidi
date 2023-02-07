@@ -63,41 +63,66 @@ class Expander(Widget):
     def draw(self):
         self.screen.addstr(self.position[1], self.position[0], str(self))
 
-class Line(Widget):
+class HLine(Widget):
 
     def __init__(self,
                  screen: nc._CursesWindow,
                  name: str = CringeMisc.generateUID(),
                  position: list[int, int] = None,
-                 size: list[int, int] = None,
+                 size: int = None,
+                 expand: bool = False,
                  color: int = 0) -> None:
         
-        if (size[0] == 1 or size[1] == 1) and not (size[0] == 1 and size[1] == 1):
-            self.size = size
-            self.__dir = False if size[0] == 1 else True
+        if expand:
+            ssize = [screen.getmaxyx()[1] - position[0], 1]
         else:
-            raise Exception("Size does not describe a stricly horizontal or vertical line")
+            ssize = [size, 1]
 
-        super().__init__(screen, name, position, size)
+        super().__init__(screen, name, position, ssize)
         
         self.color = color
+        self.expand = expand
         
     def draw(self):
-        if self.__dir:
-            for i in range(self.size[0]):
-                relPos = self.position[0] + i
-                if chr(self.screen.inch(self.position[1], relPos)) == "│":
-                    self.screen.addch(self.position[1], relPos, "┼", nc.color_pair(self.color))
-                else:
-                    self.screen.addch(self.position[1], relPos, "─", nc.color_pair(self.color))
-        else:
-            for j in range(self.size[1]):
-                relPos = self.position[1] + j
-                if chr(self.screen.inch(relPos, self.position[0])) == "─":
-                    self.screen.addch(relPos, self.position[0], "┼", nc.color_pair(self.color))
-                else:
-                    self.screen.addch(relPos, self.position[0], "│", nc.color_pair(self.color))
+        if self.expand:
+            self.size = [self.screen.getmaxyx()[1] - self.position[0], 1]
+        for i in range(self.size[0]):
+            relPos = self.position[0] + i
+            if chr(self.screen.inch(self.position[1], relPos)) == "│":
+                self.screen.addch(self.position[1], relPos, "┼", nc.color_pair(self.color))
+            else:
+                self.screen.addch(self.position[1], relPos, "─", nc.color_pair(self.color))
                     
+class VLine(Widget):
+
+    def __init__(self,
+                 screen: nc._CursesWindow,
+                 name: str = CringeMisc.generateUID(),
+                 position: list[int, int] = None,
+                 size: int = None,
+                 expand: bool = False,
+                 color: int = 0) -> None:
+        
+        if expand:
+            ssize = [1, screen.getmaxyx()[0] - position[1]]
+        else:
+            ssize = [1, size]
+
+        super().__init__(screen, name, position, ssize)
+        
+        self.color = color
+        self.expand = expand
+        
+    def draw(self):
+        if self.expand:
+            self.size = [1, self.screen.getmaxyx()[0] - self.position[1]]
+        for j in range(self.size[1]):
+            relPos = self.position[1] + j
+            if chr(self.screen.inch(relPos, self.position[0])) == "─":
+                self.screen.addch(relPos, self.position[0], "┼", nc.color_pair(self.color))
+            else:
+                self.screen.addch(relPos, self.position[0], "│", nc.color_pair(self.color))
+
 class Text(Widget):
 
     def __init__(self,
