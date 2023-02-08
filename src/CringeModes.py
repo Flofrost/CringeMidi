@@ -33,8 +33,6 @@ class Mode():
         self.drawFunction()
 
     def drawFunction(self) -> None:
-        CringeDisplay.mainToolbar.draw()
-        
         for w in self.widgets:
             w.draw()
     
@@ -173,14 +171,14 @@ def updateActiveMode(newMode:str) -> None:
         
     CringeDisplay.screen.erase()
         
+    CringeGlobals.activeMode = modeList[newMode]
+    CringeGlobals.activeMode.initMode()
+
     CringeDisplay.mainToolbar.draw()
     CringeWidgets.HLine(
         screen=CringeDisplay.screen,
         position=[0,1],
         expand=True
     ).draw()
-
-    CringeGlobals.activeMode = modeList[newMode]
-    CringeGlobals.activeMode.initMode()
 
     CringeDisplay.fixDecorativeLines()

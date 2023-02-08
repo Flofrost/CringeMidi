@@ -88,7 +88,8 @@ class HLine(Widget):
             self.size = [self.screen.getmaxyx()[1] - self.position[0], 1]
         for i in range(self.size[0]):
             relPos = self.position[0] + i
-            if chr(self.screen.inch(self.position[1], relPos)) == "│":
+            char = chr(self.screen.inch(self.position[1], relPos))
+            if char == "│":
                 self.screen.addch(self.position[1], relPos, "┼", nc.color_pair(self.color))
             else:
                 self.screen.addch(self.position[1], relPos, "─", nc.color_pair(self.color))
@@ -118,7 +119,8 @@ class VLine(Widget):
             self.size = [1, self.screen.getmaxyx()[0] - self.position[1]]
         for j in range(self.size[1]):
             relPos = self.position[1] + j
-            if chr(self.screen.inch(relPos, self.position[0])) == "─":
+            char = chr(self.screen.inch(relPos, self.position[0]))
+            if char == "─":
                 self.screen.addch(relPos, self.position[0], "┼", nc.color_pair(self.color))
             else:
                 self.screen.addch(relPos, self.position[0], "│", nc.color_pair(self.color))
