@@ -4,7 +4,7 @@ import curses as nc
 import CringeDisplay
 import CringeDocs
 import CringeGlobals
-import CringeWidgets
+from CringeWidgets import *
 
 class Mode():
     
@@ -12,7 +12,7 @@ class Mode():
             self,
             screen: nc._CursesWindow,
             name: str,
-            widgets: list[CringeWidgets.Widget] = None,
+            widgets: list[Widget] = None,
             mouseEventHandler: function = None,
             keyboardEventHandler: function = None
         ) -> None:
@@ -21,7 +21,7 @@ class Mode():
         self.name     = name
         self.widgets  = widgets
 
-        self.mouveEventsHandler    = mouseEventHandler
+        self.mouseEventsHandler    = mouseEventHandler
         self.keyboardEventsHandler = keyboardEventHandler
 
     def initMode(self) -> None:
@@ -37,20 +37,20 @@ class Mode():
             w.draw()
     
     def handleMouseEvents(self, event: int, eventPosition: list[int, int]) -> None:
-        self.mouveEventsHandler(self, event, eventPosition)
+        self.mouseEventsHandler(event, eventPosition)
 
-    def handleKeyboardEvents(self, event) -> None:
-        self.keyboardEventsHandler(self, event)
+    def handleKeyboardEvents(self, event: int) -> None:
+        self.keyboardEventsHandler(event)
         
     @property
-    def interactibles(self) -> list[CringeWidgets.InteractibleWidget]:
+    def interactibles(self) -> list[InteractibleWidget]:
         listOfInteractibles = []
         for w in self.widgets:
-            if isinstance(w, CringeWidgets.InteractibleWidget):
+            if isinstance(w, ExpandingContainer):
+                listOfInteractibles += w.interactibles
+            elif isinstance(w, InteractibleWidget):
                 listOfInteractibles.append(w)
         return listOfInteractibles
-    
-    
 
 ### Normal Mode ###
 def normalKeyboardEvents(event: int):
@@ -58,10 +58,19 @@ def normalKeyboardEvents(event: int):
         updateActiveMode("insert")
     elif event == ord("H"):
         updateActiveMode("help")
+    elif event == ord("m"):
+        updateActiveMode("play")
+    elif event == ord("S"):
+        updateActiveMode("settings")
     elif event == ord("u"):
         CringeGlobals.lastEvent = "undo"
     elif event == ord("r"):
         CringeGlobals.lastEvent = "redo"
+        
+def normalMouseEvents(event, eventPosition):
+    for w in modeList["normal"].interactibles:
+        if w.clicked(event, eventPosition):
+            CringeGlobals.lastEvent = w.name
 ### Normal Mode ###
 
 ### Insert Mode ###
@@ -78,41 +87,58 @@ def helpKeyboardEvents(event: int):
         updateActiveMode("normal")
 ### Help Mode ###
 
+### Play Mode ###
+def playKeyboardEvents(event: int):
+    if event == 27:
+        updateActiveMode("normal")
+### Play Mode ###
+
+### Settings Mode ###
+def settingsKeyboardEvents(event: int):
+    if event == 27:
+        updateActiveMode("normal")
+### Settings Mode ###
+
 modeList = {
     "normal" : Mode(
         screen=CringeDisplay.screen,
         name="normal",
         widgets=[
-            CringeWidgets.Toolbar(
+            ExpandingContainer(
                 screen=CringeDisplay.screen,
                 name="normalToolbar",
-                position=[0, 2],
+                position=[1, 2],
                 contents=[
-                    CringeWidgets.Text(
-                        screen=CringeDisplay.screen,
-                        text=" ",
-                    ), CringeWidgets.Button(
+                    Button(
                         screen=CringeDisplay.screen,
                         name="undo",
-                        text="社",
-                        enabled=False
-                    ), CringeWidgets.Text(
+                        text="社​",
+                        # enabled=False
+                    ),
+                    Text(
                         screen=CringeDisplay.screen,
                         text=" "
-                    ), CringeWidgets.Button(
+                    ),
+                    Button(
                         screen=CringeDisplay.screen,
                         name="redo",
-                        text="漏",
-                        enabled=False
+                        text="漏​",
+                        # enabled=False
                     )
                 ]
-            ), CringeWidgets.HLine(
+            ),
+            HLine(
                 screen=CringeDisplay.screen,
                 position=[0, 3],
                 expand=True
+            ),
+            VLine(
+                screen=CringeDisplay.screen,
+                position=[20,3],
+                expand=True
             )
         ],
-        mouseEventHandler=None,
+        mouseEventHandler=normalMouseEvents,
         keyboardEventHandler=normalKeyboardEvents
     ),
     "insert" : Mode(
@@ -122,37 +148,56 @@ modeList = {
         mouseEventHandler=None,
         keyboardEventHandler=insertKeyboardEvents
     ),
+    "play" : Mode(
+        screen=CringeDisplay.screen,
+        name="play",
+        widgets=[],
+        mouseEventHandler=None,
+        keyboardEventHandler=playKeyboardEvents
+    ),
+    "settings" : Mode(
+        screen=CringeDisplay.screen,
+        name="settings",
+        widgets=[],
+        mouseEventHandler=None,
+        keyboardEventHandler=settingsKeyboardEvents
+    ),
     "help" : Mode(
         screen=CringeDisplay.screen,
         name="help",
         widgets=[
-            CringeWidgets.Toolbar(
+            ExpandingContainer(
                 screen=CringeDisplay.screen,
                 name="helpToolbar",
                 position=[0, 2],
                 contents=[
-                    CringeWidgets.Text(
+                    Text(
                         screen=CringeDisplay.screen,
                         text=" "
-                    ), CringeWidgets.Button(
+                    ),
+                    Button(
                         screen=CringeDisplay.screen,
                         name="prev",
                         text="<"
-                    ), CringeWidgets.Expander(screen=CringeDisplay.screen),
-                    CringeWidgets.Text(
+                    ),
+                    Expander(screen=CringeDisplay.screen),
+                    Text(
                         screen=CringeDisplay.screen,
                         name="sectionName"
-                    ), CringeWidgets.Expander(screen=CringeDisplay.screen),
-                    CringeWidgets.Button(
+                    ),
+                    Expander(screen=CringeDisplay.screen),
+                    Button(
                         screen=CringeDisplay.screen,
                         name="next",
                         text=">"
-                    ), CringeWidgets.Text(
+                    ),
+                    Text(
                         screen=CringeDisplay.screen,
                         text=" "
                     )
                 ]
-            ), CringeWidgets.HLine(
+            ),
+            HLine(
                 screen=CringeDisplay.screen,
                 position=[0, 3],
                 expand=True
@@ -160,7 +205,7 @@ modeList = {
         ],
         mouseEventHandler=None,
         keyboardEventHandler=helpKeyboardEvents
-    ),
+    )
 }
 
 activeMode = modeList["normal"]
@@ -175,7 +220,7 @@ def updateActiveMode(newMode:str) -> None:
     CringeGlobals.activeMode.initMode()
 
     CringeDisplay.mainToolbar.draw()
-    CringeWidgets.HLine(
+    HLine(
         screen=CringeDisplay.screen,
         position=[0,1],
         expand=True

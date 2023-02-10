@@ -11,11 +11,13 @@ def drawAllWidgetsIn(widgetList:list[Widget]) -> None:
 
 class Widget(metaclass=ABCMeta):
 
-    def __init__(self,
-                 screen:nc._CursesWindow,
-                 name:str,
-                 position: list[int, int] = None,
-                 size: list[int, int] = None) -> None:
+    def __init__(
+        self,
+        screen:nc._CursesWindow,
+        name:str,
+        position: list[int, int] = None,
+        size: list[int, int] = None
+    ) -> None:
         
         self.screen = screen
         self.name = name
@@ -28,13 +30,15 @@ class Widget(metaclass=ABCMeta):
     
 class InteractibleWidget(Widget, metaclass=ABCMeta):
     
-    def __init__(self,
-                 screen: nc._CursesWindow,
-                 name: str,
-                 position: list[int, int] = None,
-                 respondsTo: int = nc.BUTTON1_CLICKED,
-                 size: list[int, int] = None,
-                 enabled: bool = True) -> None:
+    def __init__(
+        self,
+        screen: nc._CursesWindow,
+        name: str,
+        position: list[int, int] = None,
+        respondsTo: int = nc.BUTTON1_PRESSED,
+        size: list[int, int] = None,
+        enabled: bool = True
+    ) -> None:
         
         super().__init__(screen, name, position, size)
 
@@ -47,13 +51,15 @@ class InteractibleWidget(Widget, metaclass=ABCMeta):
 
 class Expander(Widget):
     
-    def __init__(self,
-                 screen: nc._CursesWindow,
-                 name: str = CringeMisc.generateUID(),
-                 filler: str = " ",
-                 position: list[int, int] = None,
-                 size: list[int, int] = None) -> None:
-        super().__init__(screen, name, position, size)
+    def __init__(
+        self,
+        screen: nc._CursesWindow,
+        name: str = CringeMisc.generateUID(),
+        filler: str = " ",
+        position: list[int, int] = None
+    ) -> None:
+
+        super().__init__(screen, name, position, [0, 0])
         
         self.filler = filler
 
@@ -65,13 +71,15 @@ class Expander(Widget):
 
 class HLine(Widget):
 
-    def __init__(self,
-                 screen: nc._CursesWindow,
-                 name: str = CringeMisc.generateUID(),
-                 position: list[int, int] = None,
-                 size: int = None,
-                 expand: bool = False,
-                 color: int = 0) -> None:
+    def __init__(
+        self,
+        screen: nc._CursesWindow,
+        name: str = CringeMisc.generateUID(),
+        position: list[int, int] = None,
+        size: int = None,
+        expand: bool = False,
+        color: int = 0
+    ) -> None:
         
         if expand:
             ssize = [screen.getmaxyx()[1] - position[0], 1]
@@ -96,13 +104,15 @@ class HLine(Widget):
                     
 class VLine(Widget):
 
-    def __init__(self,
-                 screen: nc._CursesWindow,
-                 name: str = CringeMisc.generateUID(),
-                 position: list[int, int] = None,
-                 size: int = None,
-                 expand: bool = False,
-                 color: int = 0) -> None:
+    def __init__(
+        self,
+        screen: nc._CursesWindow,
+        name: str = CringeMisc.generateUID(),
+        position: list[int, int] = None,
+        size: int = None,
+        expand: bool = False,
+        color: int = 0
+    ) -> None:
         
         if expand:
             ssize = [1, screen.getmaxyx()[0] - position[1]]
@@ -127,12 +137,14 @@ class VLine(Widget):
 
 class Text(Widget):
 
-    def __init__(self,
-                 screen: nc._CursesWindow,
-                 name: str = CringeMisc.generateUID(),
-                 text: str = "Text",
-                 position: list[int, int] = None,
-                 color: int = 0) -> None:
+    def __init__(
+        self,
+        screen: nc._CursesWindow,
+        name: str = CringeMisc.generateUID(),
+        text: str = "Text",
+        position: list[int, int] = None,
+        color: int = 0
+    ) -> None:
 
         self.text = text
         self.color = color
@@ -144,15 +156,17 @@ class Text(Widget):
                     
 class Button(InteractibleWidget):
 
-    def __init__(self,
-                 screen: nc._CursesWindow,
-                 name: str,
-                 text: str = "Button",
-                 position: list[int, int] = None,
-                 respondsTo: int = nc.BUTTON1_CLICKED,
-                 size: list[int, int] = None,
-                 color: int = 0,
-                 enabled: bool = True) -> None:
+    def __init__(
+        self,
+        screen: nc._CursesWindow,
+        name: str,
+        text: str = "Button",
+        position: list[int, int] = None,
+        respondsTo: int = nc.BUTTON1_PRESSED,
+        size: list[int, int] = None,
+        color: int = 0,
+        enabled: bool = True
+    ) -> None:
 
         size = [len(text), 1]
         super().__init__(screen, name, position, respondsTo, size, enabled)
@@ -177,15 +191,17 @@ class Button(InteractibleWidget):
 
 class ToggleButton(Button):
 
-    def __init__(self,
-                 screen: nc._CursesWindow,
-                 name: str,
-                 text: str = "Button",
-                 position: list[int, int] = None,
-                 size: list[int, int] = None,
-                 respondsTo: int = nc.BUTTON1_CLICKED,
-                 color: int = 0,
-                 enabled: bool = True) -> None:
+    def __init__(
+        self,
+        screen: nc._CursesWindow,
+        name: str,
+        text: str = "Button",
+        position: list[int, int] = None,
+        size: list[int, int] = None,
+        respondsTo: int = nc.BUTTON1_PRESSED,
+        color: int = 0,
+        enabled: bool = True
+    ) -> None:
 
         super().__init__(screen, name, text, position, respondsTo, size, color, enabled)
 
@@ -204,15 +220,17 @@ class ToggleButton(Button):
                 return True
         return False
     
-class Toolbar(Widget):
+class ExpandingContainer(Widget):
 
-    def __init__(self,
-                 screen: nc._CursesWindow,
-                 name: str,
-                 contents: list[Widget],
-                 position: list[int, int] = None,
-                 layoutVertical: bool = False) -> None:
-        
+    def __init__(
+        self,
+        screen: nc._CursesWindow,
+        name: str,
+        contents: list[Widget],
+        position: list[int, int] = None,
+        layoutVertical: bool = False
+    ) -> None:
+
         size = 0
         for w in contents:
             size += w.size[int(layoutVertical)]
@@ -222,9 +240,7 @@ class Toolbar(Widget):
         super().__init__(screen, name, position, size)
         
         self.contents = contents
-        self.__layout = layoutVertical
-        
-        self.updateWidgetsPosition()
+        self.__layout = int(layoutVertical)
         
     def draw(self):
         self.updateWidgetsPosition()
@@ -245,8 +261,11 @@ class Toolbar(Widget):
         
         sizeToFit = 0
         for w in listOfNonExpanders:
-            sizeToFit += w.size[int(self.__layout)]
-        sizeToFit = self.screen.getmaxyx()[int(not self.__layout)] - sizeToFit
+            sizeToFit += w.size[self.__layout]
+        sizeToFit = self.screen.getmaxyx()[1 - self.__layout] - self.position[self.__layout] - sizeToFit
+        
+        if sizeToFit < 0:
+            raise Exception("Can't fit all elements in available real estate")
             
         expantionSize = sizeToFit // len(listOfExpanders)
         for w in listOfExpanders:
@@ -257,8 +276,8 @@ class Toolbar(Widget):
         self.contents[0].position = self.position
 
         for i in range(1,len(self.contents)):
-            self.contents[i].position[int(self.__layout)] = self.contents[i-1].position[int(self.__layout)] + self.contents[i-1].size[int(self.__layout)]
-            self.contents[i].position[int(not self.__layout)] = self.position[int(not self.__layout)]
+            self.contents[i].position[self.__layout] = self.contents[i-1].position[self.__layout] + self.contents[i-1].size[self.__layout]
+            self.contents[i].position[1 - self.__layout] = self.position[1 - self.__layout]
 
     def changeContents(self):
         pass
@@ -273,11 +292,13 @@ class Toolbar(Widget):
 
 class StatusBar():
 
-    def __init__(self, 
-                 screen: nc._CursesWindow,
-                 text: str = "",
-                 justification: str = "left",
-                 color: int = 0) -> None:
+    def __init__(
+        self, 
+        screen: nc._CursesWindow,
+        text: str = "",
+        justification: str = "left",
+        color: int = 0
+    ) -> None:
         
         self.screen = screen
         self.text = text

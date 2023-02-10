@@ -1,22 +1,45 @@
-class Note():
-    
-    def __init__(self, note:str=None, length:int=1, volume:int=4) -> None:
-        self.note = note
-        self.length = length
-        self.volume = volume
+from __future__ import annotations
+import curses as nc
 
-class Instrument():
+from CringeWidgets import *
+
+class Instrument(InteractibleWidget):
     
-    def __init__(self, name="New Instrument", type="sine", visible=True) -> None:
+    def __init__(
+        self,
+        screen: nc._CursesWindow,
+        name: str,
+        insType: str = "sine",
+        visible: bool = True,
+        color: int = 10
+    ) -> None:
+
+        super().__init__(screen, name, None, nc.BUTTON1_PRESSED, [20,2], True)
+
         self.notes = []
-        self.name = name
-        self.type = type
+        self.type = insType
         self.visible = visible
+        
+    def draw(self) -> None:
+        pass
 
-    def __str__(self) -> str:
-        return self.name
+    def clicked(self, clickType: int, clickPosition: list[int, int]) -> bool:
+        return False
+    
+class InstrumentList(Widget):
+    
+    def __init__(
+        self,
+        screen: nc._CursesWindow,
+        name: str,
+        position: list[int, int] = None,
+        size: list[int, int] = None
+    ) -> None:
+
+        super().__init__(screen, name, position, size)
+
 
 class Sheet():
     
     def __init__(self) -> None:
-        self.instruments = []
+        pass

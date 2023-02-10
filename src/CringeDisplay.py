@@ -12,6 +12,7 @@ def initCringeMidi() -> nc._CursesWindow:
     nc.cbreak()
     nc.noecho()
     nc.curs_set(0)
+    nc.mouseinterval(0)
     nc.set_escdelay(100)
     screen.keypad(1)
 
@@ -21,6 +22,12 @@ def initCringeMidi() -> nc._CursesWindow:
         nc.init_pair(CringeGlobals.CRINGE_COLOR_BLUE,  39, -1)
         nc.init_pair(CringeGlobals.CRINGE_COLOR_PRPL, 135, -1)
         nc.init_pair(CringeGlobals.CRINGE_COLOR_DSBL, 240, -1)
+        nc.init_pair(CringeGlobals.CRINGE_COLOR_ISTR[0], 196, -1)
+        nc.init_pair(CringeGlobals.CRINGE_COLOR_ISTR[1],  40, -1)
+        nc.init_pair(CringeGlobals.CRINGE_COLOR_ISTR[2],  27, -1)
+        nc.init_pair(CringeGlobals.CRINGE_COLOR_ISTR[3], 200, -1)
+        nc.init_pair(CringeGlobals.CRINGE_COLOR_ISTR[4], 220, -1)
+        nc.init_pair(CringeGlobals.CRINGE_COLOR_ISTR[5],  51, -1)
 
     nc.mousemask(-1)
     
@@ -41,6 +48,7 @@ def endCringeMidi(screen:nc._CursesWindow) -> None:
     exit(0)
     
 def fixDecorativeLines():
+    posToFix = []
     for row in range(screenSize[0]):
         for col in range(screenSize[1]):
             if chr(screen.inch(row, col)) == "┼":
@@ -53,8 +61,11 @@ def fixDecorativeLines():
                     index += 4
                 if col < screenSize[1] - 1 and chr(screen.inch(row, col + 1)) in ("┼", "─"):
                     index += 8
-                #                        0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
-                screen.addch(row, col, (" ", " ", " ", "┘", " ", "│", "┐", "┤", " ", "└", "─", "┴", "┌", "├", "┬", "┼")[index])
+                posToFix.append([row, col, index])
+                
+    for p in posToFix:
+        #                        0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
+        screen.addch(p[0], p[1], (" ", " ", " ", "┘", " ", "│", "┐", "┤", " ", "└", "─", "┴", "┌", "├", "┬", "┼")[p[2]])
 
 def redrawScreen() -> None:
     screen.erase()
@@ -79,7 +90,7 @@ screenSize = screen.getmaxyx()
 
 
 ### Creation of global widgets ###
-mainToolbar = CringeWidgets.Toolbar(
+mainToolbar = CringeWidgets.ExpandingContainer(
     screen=screen,
     name="mainToolbar",
     position=[0, 0],
@@ -87,57 +98,71 @@ mainToolbar = CringeWidgets.Toolbar(
         CringeWidgets.VLine(
             screen=screen,
             size=2
-        ), CringeWidgets.ToggleButton(
+        ),
+        CringeWidgets.ToggleButton(
             screen=screen,
             name="normal",
-            text=" Normal",
+            text="󱣱 Normal",
             color=CringeGlobals.CRINGE_COLOR_BLUE
-        ), CringeWidgets.VLine(
+        ),
+        CringeWidgets.VLine(
             screen=screen,
             size=2
-        ), CringeWidgets.ToggleButton(
+        ),
+        CringeWidgets.ToggleButton(
             screen=screen,
             name="insert",
             text=" Insert",
             color=CringeGlobals.CRINGE_COLOR_BLUE
-        ), CringeWidgets.VLine(
-            screen=screen,
-            size=2
-        ), CringeWidgets.ToggleButton(
-            screen=screen,
-            name="play",
-            text="金​Play",
-            color=CringeGlobals.CRINGE_COLOR_BLUE
-        ), CringeWidgets.VLine(
-            screen=screen,
-            size=2
         ),
-        CringeWidgets.Expander(screen=screen),
         CringeWidgets.VLine(
             screen=screen,
             size=2
-        ), CringeWidgets.ToggleButton(
+        ),
+        CringeWidgets.ToggleButton(
             screen=screen,
-            name="settings",
-            text="煉​Settings",
+            name="play",
+            text="󰐋 Play",
             color=CringeGlobals.CRINGE_COLOR_BLUE
-        ), CringeWidgets.VLine(
+        ),
+        CringeWidgets.VLine(
             screen=screen,
             size=2
-        ), CringeWidgets.ToggleButton(
+        ),
+        CringeWidgets.Expander(
+            screen=screen
+        ),
+        CringeWidgets.VLine(
+            screen=screen,
+            size=2
+        ),
+        CringeWidgets.ToggleButton(
+            screen=screen,
+            name="settings",
+            text=" Settings",
+            color=CringeGlobals.CRINGE_COLOR_BLUE
+        ),
+        CringeWidgets.VLine(
+            screen=screen,
+            size=2
+        ),
+        CringeWidgets.ToggleButton(
             screen=screen,
             name="help",
             text=" Help",
             color=CringeGlobals.CRINGE_COLOR_BLUE
-        ), CringeWidgets.VLine(
+        ),
+        CringeWidgets.VLine(
             screen=screen,
             size=2
-        ), CringeWidgets.Button(
+        ),
+        CringeWidgets.Button(
             screen=screen,
             name="exit",
             text=" Exit",
             color=CringeGlobals.CRINGE_COLOR_BLUE
-        ), CringeWidgets.VLine(
+        ),
+        CringeWidgets.VLine(
             screen=screen,
             size=2
         )

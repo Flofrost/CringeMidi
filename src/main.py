@@ -32,7 +32,7 @@ if __name__ == "__main__":
                         CringeModes.updateActiveMode(widget.name)
                     break
             else:
-                pass
+                CringeGlobals.activeMode.mouseEventsHandler(event, eventPosition)
             
         else: # Keyboard events global handler
             CringeGlobals.activeMode.keyboardEventsHandler(event)
