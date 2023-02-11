@@ -46,7 +46,7 @@ class Mode():
     def interactibles(self) -> list[InteractibleWidget]:
         listOfInteractibles = []
         for w in self.widgets:
-            if isinstance(w, ExpandingContainer):
+            if isinstance(w, Layout):
                 listOfInteractibles += w.interactibles
             elif isinstance(w, InteractibleWidget):
                 listOfInteractibles.append(w)
@@ -104,7 +104,7 @@ modeList = {
         screen=CringeDisplay.screen,
         name="normal",
         widgets=[
-            ExpandingContainer(
+            Layout(
                 screen=CringeDisplay.screen,
                 name="normalToolbar",
                 position=[1, 2],
@@ -113,7 +113,7 @@ modeList = {
                         screen=CringeDisplay.screen,
                         name="undo",
                         text="社​",
-                        # enabled=False
+                        enabled=False
                     ),
                     Text(
                         screen=CringeDisplay.screen,
@@ -123,21 +123,59 @@ modeList = {
                         screen=CringeDisplay.screen,
                         name="redo",
                         text="漏​",
-                        # enabled=False
-                    )
+                        enabled=False
+                    ),
+                    Text(
+                        screen=CringeDisplay.screen,
+                        text=" ┃ "
+                    ),
+                    Button(
+                        screen=CringeDisplay.screen,
+                        name="addInstrument",
+                        text="​"
+                    ),
+                    Text(
+                        screen=CringeDisplay.screen,
+                        text=" "
+                    ),
+                    Button(
+                        screen=CringeDisplay.screen,
+                        name="rmvInstrument",
+                        text="​",
+                        enabled=False
+                    ),
+                    Text(
+                        screen=CringeDisplay.screen,
+                        text=" "
+                    ),
+                    Button(
+                        screen=CringeDisplay.screen,
+                        name="uppInstrument",
+                        text="​",
+                        enabled=False
+                    ),
+                    Text(
+                        screen=CringeDisplay.screen,
+                        text=" "
+                    ),
+                    Button(
+                        screen=CringeDisplay.screen,
+                        name="dwnInstrument",
+                        text="​",
+                        enabled=False
+                    ),
+                    Text(
+                        screen=CringeDisplay.screen,
+                        text=" ┃ "
+                    ),
                 ]
             ),
             HLine(
                 screen=CringeDisplay.screen,
                 position=[0, 3],
                 expand=True
-            ),
-            VLine(
-                screen=CringeDisplay.screen,
-                position=[20,3],
-                expand=True
             )
-        ],
+        ] + CringeDisplay.workspace,
         mouseEventHandler=normalMouseEvents,
         keyboardEventHandler=normalKeyboardEvents
     ),
@@ -166,7 +204,7 @@ modeList = {
         screen=CringeDisplay.screen,
         name="help",
         widgets=[
-            ExpandingContainer(
+            Layout(
                 screen=CringeDisplay.screen,
                 name="helpToolbar",
                 position=[0, 2],
@@ -208,7 +246,7 @@ modeList = {
     )
 }
 
-activeMode = modeList["normal"]
+activeMode: Mode = modeList["normal"]
 
 def updateActiveMode(newMode:str) -> None:
     for w in CringeDisplay.mainToolbar.interactibles[:-1]:

@@ -32,20 +32,20 @@ if __name__ == "__main__":
                         CringeModes.updateActiveMode(widget.name)
                     break
             else:
-                CringeGlobals.activeMode.mouseEventsHandler(event, eventPosition)
+                CringeModes.activeMode.handleMouseEvents(event, eventPosition)
             
         else: # Keyboard events global handler
-            CringeGlobals.activeMode.keyboardEventsHandler(event)
+            CringeModes.activeMode.handleKeyboardEvents(event)
 
         if nc.is_term_resized(CringeDisplay.screenSize[0], CringeDisplay.screenSize[1]): # Resize Controller
             CringeDisplay.screenSize = CringeDisplay.screen.getmaxyx()
-            minSize = [CringeDisplay.mainToolbar.size[0], 10]
+            minSize = [CringeDisplay.mainToolbar.size[0], 15]
             minW = CringeDisplay.screenSize[1] - minSize[0]
             minH = CringeDisplay.screenSize[0] - minSize[1]
             
             while minW < 0 or minH < 0:
                 CringeDisplay.screenSize = CringeDisplay.screen.getmaxyx()
-                minSize = [CringeDisplay.mainToolbar.size[0] + 2, 13]
+                minSize = [CringeDisplay.mainToolbar.size[0] + 2, 17]
                 minW = CringeDisplay.screenSize[1] - minSize[0]
                 minH = CringeDisplay.screenSize[0] - minSize[1]
 

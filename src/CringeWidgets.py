@@ -35,14 +35,12 @@ class InteractibleWidget(Widget, metaclass=ABCMeta):
         screen: nc._CursesWindow,
         name: str,
         position: list[int, int] = None,
-        respondsTo: int = nc.BUTTON1_PRESSED,
         size: list[int, int] = None,
         enabled: bool = True
     ) -> None:
         
         super().__init__(screen, name, position, size)
 
-        self.respondsTo = respondsTo
         self.enabled = enabled
         
     @abstractmethod
@@ -162,18 +160,16 @@ class Button(InteractibleWidget):
         name: str,
         text: str = "Button",
         position: list[int, int] = None,
-        respondsTo: int = nc.BUTTON1_PRESSED,
         size: list[int, int] = None,
         color: int = 0,
         enabled: bool = True
     ) -> None:
 
         size = [len(text), 1]
-        super().__init__(screen, name, position, respondsTo, size, enabled)
+        super().__init__(screen, name, position, size, enabled)
 
         self.text = text
         self.color = color
-        self.respondsTo = respondsTo
 
     def __str__(self) -> str:
         return self.text
@@ -183,7 +179,7 @@ class Button(InteractibleWidget):
         self.screen.addstr(self.position[1], self.position[0], self.text, color)
 
     def clicked(self, clickType: int, clickPosition: list[int, int]) -> bool:
-        if self.enabled and clickType == self.respondsTo:
+        if self.enabled and clickType == nc.BUTTON1_PRESSED:
             relPos = CringeMisc.subPos(clickPosition, self.position)
             if (relPos[0] >= 0) and (relPos[1] >= 0) and (relPos[0] < self.size[0]) and (relPos[1] < self.size[1]):
                 return True
@@ -198,12 +194,11 @@ class ToggleButton(Button):
         text: str = "Button",
         position: list[int, int] = None,
         size: list[int, int] = None,
-        respondsTo: int = nc.BUTTON1_PRESSED,
         color: int = 0,
         enabled: bool = True
     ) -> None:
 
-        super().__init__(screen, name, text, position, respondsTo, size, color, enabled)
+        super().__init__(screen, name, text, position, size, color, enabled)
 
         self.state = False
         
@@ -212,7 +207,7 @@ class ToggleButton(Button):
         self.screen.addstr(self.position[1], self.position[0], self.text, color)
 
     def clicked(self, clickType: int, clickPosition: list[int, int]) -> bool:
-        if self.enabled and clickType == self.respondsTo:
+        if self.enabled and clickType == nc.BUTTON1_PRESSED:
             relPos = CringeMisc.subPos(clickPosition, self.position)
             if (relPos[0] >= 0) and (relPos[1] >= 0) and (relPos[0] < self.size[0]) and (relPos[1] < self.size[1]):
                 self.state = not self.state
@@ -220,7 +215,7 @@ class ToggleButton(Button):
                 return True
         return False
     
-class ExpandingContainer(Widget):
+class Layout(Widget):
 
     def __init__(
         self,

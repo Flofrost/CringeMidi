@@ -3,6 +3,7 @@ import curses as nc
 from signal import signal, SIGINT, SIGTERM
 
 import CringeGlobals
+import CringeMidi
 import CringeWidgets
 
 
@@ -21,7 +22,7 @@ def initCringeMidi() -> nc._CursesWindow:
         nc.use_default_colors()
         nc.init_pair(CringeGlobals.CRINGE_COLOR_BLUE,  39, -1)
         nc.init_pair(CringeGlobals.CRINGE_COLOR_PRPL, 135, -1)
-        nc.init_pair(CringeGlobals.CRINGE_COLOR_DSBL, 240, -1)
+        nc.init_pair(CringeGlobals.CRINGE_COLOR_DSBL, 245, -1)
         nc.init_pair(CringeGlobals.CRINGE_COLOR_ISTR[0], 196, -1)
         nc.init_pair(CringeGlobals.CRINGE_COLOR_ISTR[1],  40, -1)
         nc.init_pair(CringeGlobals.CRINGE_COLOR_ISTR[2],  27, -1)
@@ -90,7 +91,7 @@ screenSize = screen.getmaxyx()
 
 
 ### Creation of global widgets ###
-mainToolbar = CringeWidgets.ExpandingContainer(
+mainToolbar = CringeWidgets.Layout(
     screen=screen,
     name="mainToolbar",
     position=[0, 0],
@@ -167,6 +168,14 @@ mainToolbar = CringeWidgets.ExpandingContainer(
             size=2
         )
     ])
+
+workspace = [
+    CringeMidi.InstrumentList(
+        screen=screen,
+        name="instrumentList",
+        position=[0, 4]
+    )
+]
 
 statusBar = CringeWidgets.StatusBar(
     screen=screen,
