@@ -4,5 +4,7 @@ CRINGE_COLOR_DSBL = 3
 
 CRINGE_COLOR_ISTR = [10, 11, 12, 13, 14, 15]
 
+activeMode = None
+
 debugInfo = ""
 lastEvent = ""

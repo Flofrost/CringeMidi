@@ -223,18 +223,23 @@ class Layout(Widget):
         name: str,
         contents: list[Widget],
         position: list[int, int] = None,
-        layoutVertical: bool = False
+        layoutVertical: bool = False,
+        maxSize: int = None
     ) -> None:
 
-        size = 0
-        for w in contents:
-            size += w.size[int(layoutVertical)]
-                
-        size = [1, size] if layoutVertical else [size, 1]
+        if not maxSize:
+            size = 0
+            for w in contents:
+                size += w.size[int(layoutVertical)]
+                    
+            size = [1, size] if layoutVertical else [size, 1]
+        else:
+            size = [1, maxSize] if layoutVertical else [maxSize, 1]
 
         super().__init__(screen, name, position, size)
         
         self.contents = contents
+        self.maxSize = maxSize
         self.__layout = int(layoutVertical)
         
     def draw(self):
@@ -257,7 +262,8 @@ class Layout(Widget):
         sizeToFit = 0
         for w in listOfNonExpanders:
             sizeToFit += w.size[self.__layout]
-        sizeToFit = self.screen.getmaxyx()[1 - self.__layout] - self.position[self.__layout] - sizeToFit
+        maxSize = self.maxSize if self.maxSize else self.screen.getmaxyx()[1 - self.__layout]
+        sizeToFit = maxSize - self.position[self.__layout] - sizeToFit
         
         if sizeToFit < 0:
             raise Exception("Can't fit all elements in available real estate")
