@@ -24,7 +24,7 @@ class Instrument(InteractibleWidget):
         self.color = color
         
     def draw(self) -> None:
-        color = nc.color_pair(self.color if self.selected else CringeGlobals.CRINGE_COLOR_DSBL) | nc.A_REVERSE
+        color = nc.color_pair(self.color if self.visible else CringeGlobals.CRINGE_COLOR_DSBL) | (nc.A_REVERSE if self.selected else 0)
         self.screen.addstr(self.position[1], self.position[0], " " * 20, color)
         self.screen.addstr(self.position[1] + 1, self.position[0], " " * 20, color)
         self.screen.addnstr(self.position[1], self.position[0] + 1, self.name, 18, color)
@@ -41,11 +41,14 @@ class Instrument(InteractibleWidget):
                 elif relPos[0] in [17,18] and relPos[1] == 1:
                     colorList = CringeGlobals.CRINGE_COLOR_ISTR
                     self.color = colorList[(colorList.index(self.color) + 1) % len(colorList)]
+                elif relPos[0] > 3 and relPos[0] < 16 and relPos[1] == 1:
+                    insTypeList = CringeGlobals.CRINGE_ISTR_TYPES
+                    self.type = insTypeList[(insTypeList.index(self.type) + 1) % len(insTypeList)]
                 self.draw()
             return True
         return False
     
-class InstrumentList(Layout):
+class InstrumentList(InteractibleWidget):
     
     def __init__(
         self,
@@ -54,19 +57,50 @@ class InstrumentList(Layout):
         position: list[int, int] = None,
     ) -> None:
         
-        super().__init__(screen, name, [], position, False, None)
+        size = [21, screen.getmaxyx()[0] - position[1] - 1]
+        super().__init__(screen, name, position, size, True)
 
-        self.instrumentList: list[Instrument] = [Instrument(screen=screen)]
-        self.instrumentList[0].position = self.position
-        self.instrumentList[0].selected = True
+        self.pad: nc._CursesWindow = nc.newpad(20,20)
+        self.instrumentList: list[Instrument] = [Instrument(screen=self.pad)]
+        self.scrollIndex: int = 0
+        self.selectee: int = 0
         
+    def updateWidgetsPosition(self):
+        self.size = [21, self.screen.getmaxyx()[0] - self.position[1] - 1]
+        for i, ins in enumerate(self.instrumentList):
+            ins.position = [0, i * 2]
+            ins.selected = True if i == self.selectee else False
+
     def draw(self) -> None:
-       for ins in self.instrumentList:
-        ins.draw()
-        
-    @property
-    def interactibles(self) -> list[InteractibleWidget]:
-        return self.instrumentList
+        self.updateWidgetsPosition()
+
+        for ins in self.instrumentList:
+            ins.draw()
+
+        self.screen.refresh()
+        self.pad.refresh(
+            self.scrollIndex,
+            0,
+            self.position[1],
+            self.position[0] + 1,
+            self.position[1] + self.size[1],
+            self.position[0] + self.size[0]
+        )
+    
+    def clicked(self, clickType: int, clickPosition: list[int, int]) -> bool:
+        relPos = subPos(clickPosition, self.position)
+        if (relPos[0] >= 0) and (relPos[1] >= 0) and (relPos[0] < self.size[0]) and (relPos[1] < self.size[1]):
+            if relPos[0] >= 1:
+                for i, ins in enumerate(self.instrumentList):
+                    if ins.clicked(clickType, [relPos[0] -1, relPos[1] + self.scrollIndex]):
+                        self.selectee = i
+            self.draw()
+            
+    def addInstrument(self):
+        self.instrumentList.append(Instrument(screen=self.pad))
+        if len(self.instrumentList) > self.pad.getmaxyx()[0] // 2:
+            self.pad.resize(len(self.instrumentList) * 2 + 6, 20)
+        self.draw()
 
 class Sheet():
     

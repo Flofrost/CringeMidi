@@ -52,6 +52,12 @@ class Mode():
                 listOfInteractibles.append(w)
         return listOfInteractibles
 
+### Workspace Handlers ###
+def workspaceMouseEvents(eventName: str):
+    if eventName == "addInstrument":
+        CringeDisplay.instrumentList.addInstrument()
+### Workspace Handlers ###
+
 ### Normal Mode ###
 def normalKeyboardEvents(event: int):
     if event == ord("i"):
@@ -71,6 +77,7 @@ def normalMouseEvents(event: int, eventPosition: list[int, int]):
     for w in modeList["normal"].interactibles:
         if w.clicked(event, eventPosition):
             CringeGlobals.lastEvent = w.name
+            workspaceMouseEvents(w.name)
 ### Normal Mode ###
 
 ### Insert Mode ###

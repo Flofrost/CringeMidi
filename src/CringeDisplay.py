@@ -169,6 +169,12 @@ mainToolbar = CringeWidgets.Layout(
         )
     ])
 
+instrumentList: CringeMidi.InstrumentList = CringeMidi.InstrumentList(
+        screen=screen,
+        name="instrumentList",
+        position=[0, 5]
+    )
+
 workspace = [
     CringeWidgets.VLine(
         screen=screen,
@@ -228,11 +234,7 @@ workspace = [
             CringeWidgets.Expander(screen=screen)
         ]
     ),
-    CringeMidi.InstrumentList(
-        screen=screen,
-        name="instrumentList",
-        position=[1, 5]
-    ),
+    instrumentList
 ]
 
 statusBar = CringeWidgets.StatusBar(
