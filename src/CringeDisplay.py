@@ -170,71 +170,18 @@ mainToolbar = CringeWidgets.Layout(
     ])
 
 instrumentList: CringeMidi.InstrumentList = CringeMidi.InstrumentList(
-        screen=screen,
-        name="instrumentList",
-        position=[0, 5]
-    )
+    screen=screen,
+    name="instrumentList",
+    position=[0, 4]
+)
 
 workspace = [
+    instrumentList,
     CringeWidgets.VLine(
         screen=screen,
         position=[21, 3],
         expand=True
     ),
-    CringeWidgets.Layout(
-        screen=screen,
-        name="instrumentToolbar",
-        position=[1, 4],
-        maxSize=20,
-        contents=[
-            CringeWidgets.Expander(screen=screen),
-            CringeWidgets.Text(
-                screen=screen,
-                text="-"
-            ),
-            CringeWidgets.Button(
-                screen=screen,
-                name="addInstrument",
-                text=" "
-            ),
-            CringeWidgets.Text(
-                screen=screen,
-                text="--"
-            ),
-            CringeWidgets.Button(
-                screen=screen,
-                name="rmvInstrument",
-                text=" ",
-                # enabled=False
-            ),
-            CringeWidgets.Text(
-                screen=screen,
-                text="--"
-            ),
-            CringeWidgets.Button(
-                screen=screen,
-                name="uppInstrument",
-                text=" ",
-                # enabled=False
-            ),
-            CringeWidgets.Text(
-                screen=screen,
-                text="--"
-            ),
-            CringeWidgets.Button(
-                screen=screen,
-                name="dwnInstrument",
-                text=" ",
-                # enabled=False
-            ),
-            CringeWidgets.Text(
-                screen=screen,
-                text="-"
-            ),
-            CringeWidgets.Expander(screen=screen)
-        ]
-    ),
-    instrumentList
 ]
 
 statusBar = CringeWidgets.StatusBar(

@@ -44,7 +44,7 @@ class InteractibleWidget(Widget, metaclass=ABCMeta):
         self.enabled = enabled
         
     @abstractmethod
-    def clicked(self, clickType:int, clickPosition:list[int, int]) -> bool:
+    def clicked(self, clickType:int, clickPosition:list[int, int]) -> str | None:
         pass
 
 class Expander(Widget):
@@ -178,12 +178,11 @@ class Button(InteractibleWidget):
         color = nc.color_pair(self.color) if self.enabled else (nc.color_pair(CringeGlobals.CRINGE_COLOR_DSBL))
         self.screen.addstr(self.position[1], self.position[0], self.text, color)
 
-    def clicked(self, clickType: int, clickPosition: list[int, int]) -> bool:
+    def clicked(self, clickType: int, clickPosition: list[int, int]) -> str | None:
         if self.enabled and clickType == nc.BUTTON1_PRESSED:
             relPos = CringeMisc.subPos(clickPosition, self.position)
             if (relPos[0] >= 0) and (relPos[1] >= 0) and (relPos[0] < self.size[0]) and (relPos[1] < self.size[1]):
-                return True
-        return False
+                return self.name
 
 class ToggleButton(Button):
 
@@ -206,13 +205,13 @@ class ToggleButton(Button):
         color = (nc.color_pair(self.color) | nc.A_REVERSE) if self.state else nc.color_pair(self.color)
         self.screen.addstr(self.position[1], self.position[0], self.text, color)
 
-    def clicked(self, clickType: int, clickPosition: list[int, int]) -> bool:
+    def clicked(self, clickType: int, clickPosition: list[int, int]) -> str | None:
         if self.enabled and clickType == nc.BUTTON1_PRESSED:
             relPos = CringeMisc.subPos(clickPosition, self.position)
             if (relPos[0] >= 0) and (relPos[1] >= 0) and (relPos[0] < self.size[0]) and (relPos[1] < self.size[1]):
                 self.state = not self.state
                 self.draw()
-                return True
+                return self.name
         return False
     
 class Layout(Widget):

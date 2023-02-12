@@ -12,6 +12,21 @@ if __name__ == "__main__":
     CringeDisplay.screen.nodelay(1)
     CringeDisplay.screen.timeout(20)
     
+    CringeDisplay.screenSize = CringeDisplay.screen.getmaxyx()
+    minSize = [CringeDisplay.mainToolbar.size[0], 15]
+    minW = CringeDisplay.screenSize[1] - minSize[0]
+    minH = CringeDisplay.screenSize[0] - minSize[1]
+    
+    while minW < 0 or minH < 0:
+        CringeDisplay.screenSize = CringeDisplay.screen.getmaxyx()
+        minSize = [CringeDisplay.mainToolbar.size[0] + 2, 17]
+        minW = CringeDisplay.screenSize[1] - minSize[0]
+        minH = CringeDisplay.screenSize[0] - minSize[1]
+
+        CringeDisplay.screen.erase()
+        CringeDisplay.screen.addch(0, 0, "")
+        CringeDisplay.screen.refresh()
+
     CringeModes.updateActiveMode("normal")
     CringeDisplay.redrawScreen()
     
