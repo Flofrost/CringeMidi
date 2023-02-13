@@ -1,8 +1,9 @@
 from __future__ import annotations
 import curses as nc
 
-from CringeWidgets import *
+import CringeGlobals
 from CringeMisc import subPos
+from CringeWidgets import *
 
 class Instrument(InteractibleWidget):
     
@@ -37,16 +38,29 @@ class Instrument(InteractibleWidget):
         if (clickType == nc.BUTTON1_PRESSED) and (relPos[0] >= 0) and (relPos[1] >= 0) and (relPos[0] < self.size[0]) and (relPos[1] < self.size[1]):
             if self.selected:
                 if relPos[0] in [1,2] and relPos[1] == 1:
-                    self.visible = not self.visible
+                    self.toggleVisible()
                 elif relPos[0] in [17,18] and relPos[1] == 1:
-                    colorList = CringeGlobals.CRINGE_COLOR_ISTR
-                    self.color = colorList[(colorList.index(self.color) + 1) % len(colorList)]
+                    self.changeColor()
                 elif relPos[0] > 3 and relPos[0] < 16 and relPos[1] == 1:
-                    insTypeList = CringeGlobals.CRINGE_ISTR_TYPES
-                    self.type = insTypeList[(insTypeList.index(self.type) + 1) % len(insTypeList)]
-                self.draw()
+                    self.changeType()
+                elif relPos[0] > 1 and relPos[0] < 17 and relPos[1] == 0:
+                    self.changeName()
             return self.name
     
+    def changeType(self):
+        insTypeList = CringeGlobals.CRINGE_ISTR_TYPES
+        self.type = insTypeList[(insTypeList.index(self.type) + 1) % len(insTypeList)]
+
+    def changeColor(self):
+        colorList = CringeGlobals.CRINGE_COLOR_ISTR
+        self.color = colorList[(colorList.index(self.color) + 1) % len(colorList)]
+        
+    def changeName(self):
+        newName = getInput(screen=self.screen, prompt="New Name : ", attributes=nc.color_pair(self.color))
+        
+    def toggleVisible(self):
+        self.visible = not self.visible
+
 class InstrumentList(InteractibleWidget):
     
     def __init__(
@@ -149,12 +163,15 @@ class InstrumentList(InteractibleWidget):
     def clicked(self, clickType: int, clickPosition: list[int, int]) -> str | None:
         for w in self.toolbar.interactibles:
             if w.clicked(clickType, clickPosition):
-                if w.name == "addInstrument":
+                if   w.name == "addInstrument":
                     self.addInstrument()
                 elif w.name == "rmvInstrument":
                     self.rmvInstrument()
+                elif w.name == "uppInstrument":
+                    self.move()
+                elif w.name == "dwnInstrument":
+                    self.move(False)
 
-                self.draw()
                 return w.name
 
         relPos = subPos(clickPosition, self.position)
@@ -179,17 +196,34 @@ class InstrumentList(InteractibleWidget):
         self.instrumentList.append(Instrument(screen=self.pad))
         if len(self.instrumentList) + 1 > self.pad.getmaxyx()[0] // 2:
             self.pad.resize(len(self.instrumentList) * 2 + 7, 20)
+        self.draw()
     
     def rmvInstrument(self):
         self.instrumentList.remove(self.instrumentList[self.selectee])
         self.selectee = self.selectee % len(self.instrumentList)
         if (self.pad.getmaxyx()[0] // 2) - len(self.instrumentList) > 6:
             self.pad.resize(len(self.instrumentList) * 2 + 7, 20)
+        self.draw()
             
     def selectNext(self, next=True):
         self.selectee = (self.selectee + (1 if next else -1)) % len(self.instrumentList)
         self.draw()
         
+    def move(self, up=True):
+        if up and self.selectee > 0:
+            ins = self.instrumentList.pop(self.selectee)
+            self.selectee -= 1
+            self.instrumentList.insert(self.selectee, ins)
+            self.draw()
+        elif not up and self.selectee < len(self.instrumentList) - 1:
+            ins = self.instrumentList.pop(self.selectee)
+            self.selectee += 1
+            self.instrumentList.insert(self.selectee, ins)
+            self.draw()
+
+    @property
+    def selectedInstrument(self) -> Instrument:
+        return self.instrumentList[self.selectee]
 
 class Sheet():
     

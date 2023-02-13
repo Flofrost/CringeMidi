@@ -9,8 +9,10 @@ def drawAllWidgetsIn(widgetList:list[Widget]) -> None:
     for w in widgetList:
         w.draw()
 
-def getInput(prompt: str = ""):
-    pass
+def getInput(screen: nc._CursesWindow, prompt: str = "", limit: int = 20, attributes: int = 0) -> str | None:
+    screen.addstr(screen.getmaxyx()[0] - 1, 0, " " * (screen.getmaxyx()[1] - 1), attributes)
+    screen.refresh()
+    return None
 
 class Widget(metaclass=ABCMeta):
 
@@ -299,27 +301,20 @@ class StatusBar():
         self, 
         screen: nc._CursesWindow,
         text: str = "",
-        justification: str = "left",
         color: int = 0
     ) -> None:
         
         self.screen = screen
-        self.text = text
+        self.text = ["", ""]
         self.color = color
-        self.justification = justification
         
     def draw(self):
         self.position = [0, self.screen.getmaxyx()[0]-1]
+        self.screen.addstr(self.position[1], self.position[0], " " * (self.screen.getmaxyx()[1] - 1), nc.color_pair(self.color) | nc.A_REVERSE)
 
-        if self.justification == "left":
-            text = self.text + " " * (self.screen.getmaxyx()[1] - len(self.text) - 1)
-            self.screen.addstr(self.position[1], 0, text, nc.color_pair(self.color) | nc.A_REVERSE)
-        elif self.justification == "center":
-            textMid = len(self.text) // 2
-            screenMid = self.screen.getmaxyx()[1] // 2
-            text = " " * (screenMid - textMid - 1) + self.text + " " * (screenMid - textMid - 1)
-            self.screen.addstr(self.position[1], 0, text, nc.color_pair(self.color) | nc.A_REVERSE)
+        self.screen.addstr(self.position[1], self.position[0], self.text[0], nc.color_pair(self.color) | nc.A_REVERSE)
+        self.screen.addstr(self.position[1], self.screen.getmaxyx()[1] - len(self.text[1]) - 1, self.text[1], nc.color_pair(self.color) | nc.A_REVERSE)
         
-    def updateText(self,text: str):
-        self.text = text
+    def updateText(self,textL: str = "", textR: str = ""):
+        self.text = [textL, textR]
         self.draw()

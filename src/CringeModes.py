@@ -7,7 +7,12 @@ import CringeGlobals
 from CringeWidgets import *
 
 kbKeys = {
-    
+    "CTRL+LEFT": 546,
+    "CTRL+RIGHT" : 561,
+    "CTRL+UP" : 567,
+    "CTRL+DOWN" : 526,
+    "SHIFT+UP" : 337,
+    "SHIFT+DOWN" : 336,
 }
 
 class Mode():
@@ -68,13 +73,34 @@ def normalKeyboardEvents(event: int):
         updateActiveMode("play")
     elif event == ord("S"):
         updateActiveMode("settings")
+
     elif event == ord("u"):
         CringeGlobals.lastEvent = "undo"
     elif event == ord("r"):
         CringeGlobals.lastEvent = "redo"
-    
-    elif event == ord("\t"):
+
+    elif event == ord("n"):
+        CringeDisplay.instrumentList.addInstrument()
+    elif event == ord("N"):
+        if len(CringeDisplay.instrumentList.instrumentList) > 1:
+            CringeDisplay.instrumentList.rmvInstrument()
+    elif event == ord("J"):
+        CringeDisplay.instrumentList.move(False)
+    elif event == ord("K"):
+        CringeDisplay.instrumentList.move()
+    elif event == ord("C"):
+        CringeDisplay.instrumentList.selectedInstrument.changeColor()
+        CringeDisplay.instrumentList.draw()
+    elif event == ord("V"):
+        CringeDisplay.instrumentList.selectedInstrument.toggleVisible()
+        CringeDisplay.instrumentList.draw()
+    elif event == ord("T"):
+        CringeDisplay.instrumentList.selectedInstrument.changeType()
+        CringeDisplay.instrumentList.draw()
+    elif event == kbKeys["SHIFT+DOWN"]:
         CringeDisplay.instrumentList.selectNext()
+    elif event == kbKeys["SHIFT+UP"]:
+        CringeDisplay.instrumentList.selectNext(next=False)
         
     else:
         CringeGlobals.debugInfo = event

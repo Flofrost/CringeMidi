@@ -69,4 +69,4 @@ if __name__ == "__main__":
 
             CringeDisplay.redrawScreen()
             
-        CringeDisplay.statusBar.updateText(f"{CringeGlobals.lastEvent} {CringeGlobals.debugInfo}")
+        CringeDisplay.statusBar.updateText(f" {CringeGlobals.lastEvent}", f"{CringeGlobals.debugInfo} ")
