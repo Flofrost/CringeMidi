@@ -48,7 +48,6 @@ if __name__ == "__main__":
                     break
             else:
                 CringeGlobals.activeMode.handleMouseEvents(event, eventPosition)
-            
         else: # Keyboard events global handler
             CringeGlobals.activeMode.handleKeyboardEvents(event)
 

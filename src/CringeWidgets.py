@@ -9,6 +9,9 @@ def drawAllWidgetsIn(widgetList:list[Widget]) -> None:
     for w in widgetList:
         w.draw()
 
+def getInput(prompt: str = ""):
+    pass
+
 class Widget(metaclass=ABCMeta):
 
     def __init__(

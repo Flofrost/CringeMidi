@@ -179,11 +179,17 @@ class InstrumentList(InteractibleWidget):
         self.instrumentList.append(Instrument(screen=self.pad))
         if len(self.instrumentList) + 1 > self.pad.getmaxyx()[0] // 2:
             self.pad.resize(len(self.instrumentList) * 2 + 7, 20)
-        self.draw()
     
     def rmvInstrument(self):
         self.instrumentList.remove(self.instrumentList[self.selectee])
         self.selectee = self.selectee % len(self.instrumentList)
+        if (self.pad.getmaxyx()[0] // 2) - len(self.instrumentList) > 6:
+            self.pad.resize(len(self.instrumentList) * 2 + 7, 20)
+            
+    def selectNext(self, next=True):
+        self.selectee = (self.selectee + (1 if next else -1)) % len(self.instrumentList)
+        self.draw()
+        
 
 class Sheet():
     

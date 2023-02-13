@@ -6,6 +6,10 @@ import CringeDocs
 import CringeGlobals
 from CringeWidgets import *
 
+kbKeys = {
+    
+}
+
 class Mode():
     
     def __init__(
@@ -54,7 +58,9 @@ class Mode():
 
 ### Normal Mode ###
 def normalKeyboardEvents(event: int):
-    if event == ord("i"):
+    if event == -1:
+        return
+    elif event == ord("i"):
         updateActiveMode("insert")
     elif event == ord("H"):
         updateActiveMode("help")
@@ -66,6 +72,12 @@ def normalKeyboardEvents(event: int):
         CringeGlobals.lastEvent = "undo"
     elif event == ord("r"):
         CringeGlobals.lastEvent = "redo"
+    
+    elif event == ord("\t"):
+        CringeDisplay.instrumentList.selectNext()
+        
+    else:
+        CringeGlobals.debugInfo = event
         
 def normalMouseEvents(event: int, eventPosition: list[int, int]):
     for w in modeList["normal"].interactibles:
