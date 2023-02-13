@@ -3,9 +3,6 @@ import curses as nc
 from signal import signal, SIGINT, SIGTERM
 
 import CringeGlobals
-import CringeMidi
-import CringeWidgets
-
 
 ### Definition of display functions###
 def initCringeMidi() -> nc._CursesWindow:
@@ -48,6 +45,11 @@ def endCringeMidi(screen:nc._CursesWindow) -> None:
     nc.endwin()
     exit(0)
     
+def getInput(screen: nc._CursesWindow, prompt: str = "", limit: int = 20, attributes: int = 0) -> str | None:
+    # screen.addstr(screen.getmaxyx()[0] - 1, 0, " " * (screen.getmaxyx()[1] - 1), attributes)
+    # screen.refresh()
+    return "a"
+
 def fixDecorativeLines():
     posToFix = []
     for row in range(screenSize[0]):
@@ -70,14 +72,9 @@ def fixDecorativeLines():
 
 def redrawScreen() -> None:
     screen.erase()
-    mainToolbar.draw()
-    
-    CringeWidgets.HLine(
-        screen=screen,
-        position=[0, 1],
-        expand=True
-    ).draw()
-    
+
+    CringeGlobals.mainToolbar.draw()
+    CringeGlobals.mainToolBarLine.draw()
     CringeGlobals.activeMode.drawFunction()
 
     fixDecorativeLines()
@@ -88,104 +85,3 @@ def redrawScreen() -> None:
 screen = initCringeMidi()
 screenSize = screen.getmaxyx()
 ### Initialisation of NCurses ###
-
-
-### Creation of global widgets ###
-mainToolbar = CringeWidgets.Layout(
-    screen=screen,
-    name="mainToolbar",
-    position=[0, 0],
-    contents=[
-        CringeWidgets.VLine(
-            screen=screen,
-            size=2
-        ),
-        CringeWidgets.ToggleButton(
-            screen=screen,
-            name="normal",
-            text="󱣱 Normal",
-            color=CringeGlobals.CRINGE_COLOR_BLUE
-        ),
-        CringeWidgets.VLine(
-            screen=screen,
-            size=2
-        ),
-        CringeWidgets.ToggleButton(
-            screen=screen,
-            name="insert",
-            text=" Insert",
-            color=CringeGlobals.CRINGE_COLOR_BLUE
-        ),
-        CringeWidgets.VLine(
-            screen=screen,
-            size=2
-        ),
-        CringeWidgets.ToggleButton(
-            screen=screen,
-            name="play",
-            text="󰐋 Play",
-            color=CringeGlobals.CRINGE_COLOR_BLUE
-        ),
-        CringeWidgets.VLine(
-            screen=screen,
-            size=2
-        ),
-        CringeWidgets.Expander(
-            screen=screen
-        ),
-        CringeWidgets.VLine(
-            screen=screen,
-            size=2
-        ),
-        CringeWidgets.ToggleButton(
-            screen=screen,
-            name="settings",
-            text=" Settings",
-            color=CringeGlobals.CRINGE_COLOR_BLUE
-        ),
-        CringeWidgets.VLine(
-            screen=screen,
-            size=2
-        ),
-        CringeWidgets.ToggleButton(
-            screen=screen,
-            name="help",
-            text=" Help",
-            color=CringeGlobals.CRINGE_COLOR_BLUE
-        ),
-        CringeWidgets.VLine(
-            screen=screen,
-            size=2
-        ),
-        CringeWidgets.Button(
-            screen=screen,
-            name="exit",
-            text=" Exit",
-            color=CringeGlobals.CRINGE_COLOR_BLUE
-        ),
-        CringeWidgets.VLine(
-            screen=screen,
-            size=2
-        )
-    ])
-
-instrumentList: CringeMidi.InstrumentList = CringeMidi.InstrumentList(
-    screen=screen,
-    name="instrumentList",
-    position=[0, 4]
-)
-
-workspace = [
-    instrumentList,
-    CringeWidgets.VLine(
-        screen=screen,
-        position=[21, 3],
-        expand=True
-    ),
-]
-
-statusBar = CringeWidgets.StatusBar(
-    screen=screen,
-    color=CringeGlobals.CRINGE_COLOR_PRPL
-)
-### Creation of global widgets ###

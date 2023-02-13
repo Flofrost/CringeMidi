@@ -2,17 +2,9 @@ from __future__ import annotations
 import curses as nc
 from abc import ABCMeta, abstractmethod
 
-import CringeGlobals
-import CringeMisc
-
-def drawAllWidgetsIn(widgetList:list[Widget]) -> None:
-    for w in widgetList:
-        w.draw()
-
-def getInput(screen: nc._CursesWindow, prompt: str = "", limit: int = 20, attributes: int = 0) -> str | None:
-    screen.addstr(screen.getmaxyx()[0] - 1, 0, " " * (screen.getmaxyx()[1] - 1), attributes)
-    screen.refresh()
-    return None
+from CringeGlobals import *
+from CringeDisplay import *
+from CringeMisc import *
 
 class Widget(metaclass=ABCMeta):
 
@@ -57,7 +49,7 @@ class Expander(Widget):
     def __init__(
         self,
         screen: nc._CursesWindow,
-        name: str = CringeMisc.generateUID(),
+        name: str = generateUID(),
         filler: str = " ",
         position: list[int, int] = None
     ) -> None:
@@ -77,7 +69,7 @@ class HLine(Widget):
     def __init__(
         self,
         screen: nc._CursesWindow,
-        name: str = CringeMisc.generateUID(),
+        name: str = generateUID(),
         position: list[int, int] = None,
         size: int = None,
         expand: bool = False,
@@ -110,7 +102,7 @@ class VLine(Widget):
     def __init__(
         self,
         screen: nc._CursesWindow,
-        name: str = CringeMisc.generateUID(),
+        name: str = generateUID(),
         position: list[int, int] = None,
         size: int = None,
         expand: bool = False,
@@ -143,7 +135,7 @@ class Text(Widget):
     def __init__(
         self,
         screen: nc._CursesWindow,
-        name: str = CringeMisc.generateUID(),
+        name: str = generateUID(),
         text: str = "Text",
         position: list[int, int] = None,
         color: int = 0
@@ -180,12 +172,12 @@ class Button(InteractibleWidget):
         return self.text
 
     def draw(self):
-        color = nc.color_pair(self.color) if self.enabled else (nc.color_pair(CringeGlobals.CRINGE_COLOR_DSBL))
+        color = nc.color_pair(self.color) if self.enabled else (nc.color_pair(CRINGE_COLOR_DSBL))
         self.screen.addstr(self.position[1], self.position[0], self.text, color)
 
     def clicked(self, clickType: int, clickPosition: list[int, int]) -> str | None:
         if self.enabled and clickType == nc.BUTTON1_PRESSED:
-            relPos = CringeMisc.subPos(clickPosition, self.position)
+            relPos = subPos(clickPosition, self.position)
             if (relPos[0] >= 0) and (relPos[1] >= 0) and (relPos[0] < self.size[0]) and (relPos[1] < self.size[1]):
                 return self.name
 
@@ -212,7 +204,7 @@ class ToggleButton(Button):
 
     def clicked(self, clickType: int, clickPosition: list[int, int]) -> str | None:
         if self.enabled and clickType == nc.BUTTON1_PRESSED:
-            relPos = CringeMisc.subPos(clickPosition, self.position)
+            relPos = subPos(clickPosition, self.position)
             if (relPos[0] >= 0) and (relPos[1] >= 0) and (relPos[0] < self.size[0]) and (relPos[1] < self.size[1]):
                 self.state = not self.state
                 self.draw()
@@ -300,7 +292,6 @@ class StatusBar():
     def __init__(
         self, 
         screen: nc._CursesWindow,
-        text: str = "",
         color: int = 0
     ) -> None:
         

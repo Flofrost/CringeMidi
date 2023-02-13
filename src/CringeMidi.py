@@ -4,6 +4,7 @@ import curses as nc
 import CringeGlobals
 from CringeMisc import subPos
 from CringeWidgets import *
+from CringeDisplay import *
 
 class Instrument(InteractibleWidget):
     
@@ -61,7 +62,7 @@ class Instrument(InteractibleWidget):
     def toggleVisible(self):
         self.visible = not self.visible
 
-class InstrumentList(InteractibleWidget):
+class Sheet(InteractibleWidget):
     
     def __init__(
         self,
@@ -146,6 +147,7 @@ class InstrumentList(InteractibleWidget):
         self.updateWidgetsPosition()
         
         self.toolbar.draw()
+        VLine(screen=self.screen, position=[21, 3], expand=True).draw()
         self.pad.erase()
         for ins in self.instrumentList:
             ins.draw()
@@ -225,7 +227,90 @@ class InstrumentList(InteractibleWidget):
     def selectedInstrument(self) -> Instrument:
         return self.instrumentList[self.selectee]
 
-class Sheet():
-    
-    def __init__(self) -> None:
-        pass
+### Creation of global widgets ###
+CringeGlobals.mainToolbar = Layout(
+    screen=screen,
+    name="mainToolbar",
+    position=[0, 0],
+    contents=[
+        VLine(
+            screen=screen,
+            size=2
+        ),
+        ToggleButton(
+            screen=screen,
+            name="normal",
+            text="󱣱 Normal",
+            color=CRINGE_COLOR_BLUE
+        ),
+        VLine(
+            screen=screen,
+            size=2
+        ),
+        ToggleButton(
+            screen=screen,
+            name="insert",
+            text=" Insert",
+            color=CRINGE_COLOR_BLUE
+        ),
+        VLine(
+            screen=screen,
+            size=2
+        ),
+        Expander(
+            screen=screen
+        ),
+        VLine(
+            screen=screen,
+            size=2
+        ),
+        ToggleButton(
+            screen=screen,
+            name="settings",
+            text=" Settings",
+            color=CRINGE_COLOR_BLUE
+        ),
+        VLine(
+            screen=screen,
+            size=2
+        ),
+        ToggleButton(
+            screen=screen,
+            name="help",
+            text=" Help",
+            color=CRINGE_COLOR_BLUE
+        ),
+        VLine(
+            screen=screen,
+            size=2
+        ),
+        Button(
+            screen=screen,
+            name="exit",
+            text=" Exit",
+            color=CRINGE_COLOR_BLUE
+        ),
+        VLine(
+            screen=screen,
+            size=2
+        )
+    ]
+)
+
+CringeGlobals.mainToolBarLine = HLine(
+    screen=screen,
+    position=[0, 1],
+    expand=True
+)
+
+CringeGlobals.sheet = Sheet(
+    screen=screen,
+    name="instrumentList",
+    position=[0, 4]
+)
+
+CringeGlobals.statusBar = StatusBar(
+    screen=screen,
+    color=CRINGE_COLOR_PRPL
+)
+### Creation of global widgets ###

@@ -10,7 +10,11 @@ CRINGE_ISTR_TYPES = [
     "noise"
 ]
 
-activeMode = None
+activeMode      = None
+mainToolBar     = None
+mainToolBarLine = None
+sheet           = None
+statusBar       = None
 
 debugInfo = ""
 lastEvent = ""

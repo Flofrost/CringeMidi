@@ -12,14 +12,13 @@ if __name__ == "__main__":
     CringeDisplay.screen.nodelay(1)
     CringeDisplay.screen.timeout(20)
     
-    CringeDisplay.screenSize = CringeDisplay.screen.getmaxyx()
-    minSize = [CringeDisplay.mainToolbar.size[0], 15]
+    minSize = [CringeGlobals.mainToolbar.size[0], 15]
     minW = CringeDisplay.screenSize[1] - minSize[0]
     minH = CringeDisplay.screenSize[0] - minSize[1]
     
     while minW < 0 or minH < 0:
         CringeDisplay.screenSize = CringeDisplay.screen.getmaxyx()
-        minSize = [CringeDisplay.mainToolbar.size[0] + 2, 17]
+        minSize = [CringeGlobals.mainToolbar.size[0] + 2, 17]
         minW = CringeDisplay.screenSize[1] - minSize[0]
         minH = CringeDisplay.screenSize[0] - minSize[1]
 
@@ -39,7 +38,7 @@ if __name__ == "__main__":
             eventPosition = event[1:3]
             event = event[4]
             
-            for widget in CringeDisplay.mainToolbar.interactibles:
+            for widget in CringeGlobals.mainToolbar.interactibles:
                 if widget.clicked(event, eventPosition):
                     if widget.name == "exit":
                         CringeDisplay.terminationJudgement()
@@ -53,13 +52,13 @@ if __name__ == "__main__":
 
         if nc.is_term_resized(CringeDisplay.screenSize[0], CringeDisplay.screenSize[1]): # Resize Controller
             CringeDisplay.screenSize = CringeDisplay.screen.getmaxyx()
-            minSize = [CringeDisplay.mainToolbar.size[0], 15]
+            minSize = [CringeGlobals.mainToolbar.size[0], 15]
             minW = CringeDisplay.screenSize[1] - minSize[0]
             minH = CringeDisplay.screenSize[0] - minSize[1]
             
             while minW < 0 or minH < 0:
                 CringeDisplay.screenSize = CringeDisplay.screen.getmaxyx()
-                minSize = [CringeDisplay.mainToolbar.size[0] + 2, 17]
+                minSize = [CringeGlobals.mainToolbar.size[0] + 2, 17]
                 minW = CringeDisplay.screenSize[1] - minSize[0]
                 minH = CringeDisplay.screenSize[0] - minSize[1]
 
@@ -69,4 +68,4 @@ if __name__ == "__main__":
 
             CringeDisplay.redrawScreen()
             
-        CringeDisplay.statusBar.updateText(f" {CringeGlobals.lastEvent}", f"{CringeGlobals.debugInfo} ")
+        CringeGlobals.statusBar.updateText(f" {CringeGlobals.lastEvent}", f"{CringeGlobals.debugInfo} ")
