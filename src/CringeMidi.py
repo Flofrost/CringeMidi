@@ -1,5 +1,6 @@
 from __future__ import annotations
 import curses as nc
+from random import randint
 
 import CringeGlobals
 from CringeMisc import subPos
@@ -129,7 +130,7 @@ class Sheet(InteractibleWidget):
 
         self.pad: nc._CursesWindow = nc.newpad(21,20)
         self.instrumentList: list[Instrument] = [Instrument(screen=self.pad)]
-        self.scrollIndex: int = 0
+        self.instrumentScrollIndex: int = 0
         self.selectee: int = 0
         
     def updateWidgetsPosition(self):
@@ -157,7 +158,7 @@ class Sheet(InteractibleWidget):
 
         self.screen.refresh()
         self.pad.refresh(
-            self.scrollIndex,
+            self.instrumentScrollIndex,
             0,
             self.position[1] + 1,
             self.position[0] + 1,
@@ -184,21 +185,21 @@ class Sheet(InteractibleWidget):
             if (relPos[0] >= 1) and (relPos[1] >= 1):
                 if clickType == nc.BUTTON1_PRESSED:
                     for i, ins in enumerate(self.instrumentList):
-                        if ins.clicked(clickType, [relPos[0] - 1, relPos[1] + self.scrollIndex - 1]):
+                        if ins.clicked(clickType, [relPos[0] - 1, relPos[1] + self.instrumentScrollIndex - 1]):
                             self.selectee = i
                 elif clickType == nc.BUTTON5_PRESSED:
-                    if self.scrollIndex < self.pad.getmaxyx()[0] - self.size[1]:
-                        self.scrollIndex += 1
+                    if self.instrumentScrollIndex < self.pad.getmaxyx()[0] - self.size[1]:
+                        self.instrumentScrollIndex += 1
                         self.draw()
                 elif clickType == nc.BUTTON4_PRESSED:
-                    if self.scrollIndex > 0:
-                        self.scrollIndex -= 1
+                    if self.instrumentScrollIndex > 0:
+                        self.instrumentScrollIndex -= 1
                         self.draw()
             self.draw()
             return "intrumentEvent"
             
     def addInstrument(self):
-        self.instrumentList.append(Instrument(screen=self.pad))
+        self.instrumentList.append(Instrument(screen=self.pad, color=randint(CringeGlobals.CRINGE_COLOR_ISTR[0], CringeGlobals.CRINGE_COLOR_ISTR[-1])))
         if len(self.instrumentList) + 1 > self.pad.getmaxyx()[0] // 2:
             self.pad.resize(len(self.instrumentList) * 2 + 7, 20)
         self.draw()
@@ -212,6 +213,10 @@ class Sheet(InteractibleWidget):
             
     def selectNext(self, next=True):
         self.selectee = (self.selectee + (1 if next else -1)) % len(self.instrumentList)
+        if self.selectee * 2 < self.instrumentScrollIndex:
+            self.instrumentScrollIndex = self.selectee * 2
+        elif self.selectee * 2 > self.instrumentScrollIndex + self.size[1] - 3:
+            self.instrumentScrollIndex = self.selectee * 2 - self.size[1] + 3
         self.draw()
         
     def move(self, up=True):
