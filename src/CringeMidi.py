@@ -57,7 +57,8 @@ class Instrument(InteractibleWidget):
         self.color = colorList[(colorList.index(self.color) + 1) % len(colorList)]
         
     def changeName(self):
-        newName = getInput(screen=self.screen, prompt="New Name : ", attributes=nc.color_pair(self.color))
+        newName = getInput(prompt="New Name : ", limit=18, attributes=nc.color_pair(self.color) | nc.A_REVERSE)
+        if newName: self.name = newName
         
     def toggleVisible(self):
         self.visible = not self.visible
@@ -147,7 +148,9 @@ class Sheet(InteractibleWidget):
         self.updateWidgetsPosition()
         
         self.toolbar.draw()
+        HLine(screen=self.screen, position=[ 0, 3], expand=True).draw()
         VLine(screen=self.screen, position=[21, 3], expand=True).draw()
+        self.screen.addch(3, 21, "┬")
         self.pad.erase()
         for ins in self.instrumentList:
             ins.draw()

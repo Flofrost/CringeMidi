@@ -45,10 +45,33 @@ def endCringeMidi(screen:nc._CursesWindow) -> None:
     nc.endwin()
     exit(0)
     
-def getInput(screen: nc._CursesWindow, prompt: str = "", limit: int = 20, attributes: int = 0) -> str | None:
-    # screen.addstr(screen.getmaxyx()[0] - 1, 0, " " * (screen.getmaxyx()[1] - 1), attributes)
-    # screen.refresh()
-    return "a"
+def getInput(prompt: str = "", limit: int = 50, attributes: int = 0) -> str | None:
+    screen.timeout(-1)
+    
+    string = ""
+    while True:
+        screen.addstr(screen.getmaxyx()[0] - 1, 0, " " * (screen.getmaxyx()[1] - 1), attributes)
+        screen.addstr(screen.getmaxyx()[0] - 1, 0, f" {prompt}{string}_", attributes)
+
+        event = screen.getkey()
+        if event == "\x1b": # Escape
+            string = None
+            break
+        elif event == "\n": # Return
+            if not len(string):
+                string = None
+            break
+        elif event == "KEY_BACKSPACE": # Backspace
+            if len(string) > 1:
+                string = string[:len(string)-1]
+            else:
+                string = ""
+        elif event.isprintable() and len(event) == 1:
+            if len(string) < limit:
+                string += event
+    screen.timeout(20)
+
+    return string
 
 def fixDecorativeLines():
     posToFix = []

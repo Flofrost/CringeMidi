@@ -95,6 +95,9 @@ def normalKeyboardEvents(event: int):
     elif event == ord("T"):
         CringeGlobals.sheet.selectedInstrument.changeType()
         CringeGlobals.sheet.draw()
+    elif event == ord("L"):
+        CringeGlobals.sheet.selectedInstrument.changeName()
+        CringeGlobals.sheet.draw()
     elif event == kbKeys["SHIFT+DOWN"]:
         CringeGlobals.sheet.selectNext()
     elif event == kbKeys["SHIFT+UP"]:
@@ -168,11 +171,6 @@ modeList = {
                         enabled=False
                     ),
                 ]
-            ),
-            HLine(
-                screen=screen,
-                position=[0, 3],
-                expand=True
             ),
             CringeGlobals.sheet
         ],
