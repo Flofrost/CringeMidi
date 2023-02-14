@@ -1,13 +1,12 @@
 #!/bin/python3
 from __future__ import annotations
 import curses as nc
+import traceback
 
-import CringeDisplay
-import CringeGlobals
-import CringeModes
-
-
-if __name__ == "__main__":
+try:
+    import CringeDisplay
+    import CringeGlobals
+    import CringeModes
 
     CringeDisplay.screen.nodelay(1)
     CringeDisplay.screen.timeout(20)
@@ -26,7 +25,7 @@ if __name__ == "__main__":
             event = event[4]
             
             for widget in CringeGlobals.mainToolbar.interactibles:
-                if widget.clicked(event, eventPosition):
+                if widget.clickHandler(event, eventPosition):
                     if widget.name == "exit":
                         CringeDisplay.terminationJudgement()
                     else:
@@ -41,3 +40,13 @@ if __name__ == "__main__":
             screenSize = CringeDisplay.screenResizeCheckerandUpdater()
             
         CringeGlobals.statusBar.updateText(f" {CringeGlobals.lastEvent}", f"{CringeGlobals.debugInfo} ")
+
+except:
+    CringeDisplay.screen.keypad(0)
+    nc.curs_set(1)
+    nc.nocbreak()
+    nc.echo()
+    nc.endwin()
+    traceback.print_exc()
+    input()
+    exit(1)

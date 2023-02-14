@@ -108,7 +108,7 @@ def normalKeyboardEvents(event: int):
         
 def normalMouseEvents(event: int, eventPosition: list[int, int]):
     for w in modeList["normal"].interactibles:
-        eventStr = w.clicked(event, eventPosition)
+        eventStr = w.clickHandler(event, eventPosition)
         if eventStr:
             CringeGlobals.lastEvent = eventStr
 ### Normal Mode ###
@@ -122,7 +122,7 @@ def insertKeyboardEvents(event: int):
 
 def insertMouseEvents(event: int, eventPosition: list[int, int]):
     for w in modeList["insert"].interactibles:
-        if w.clicked(event, eventPosition):
+        if w.clickHandler(event, eventPosition):
             CringeGlobals.lastEvent = w.name
 ### Insert Mode ###
 

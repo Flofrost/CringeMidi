@@ -35,7 +35,7 @@ class Instrument(InteractibleWidget):
         self.screen.addnstr(self.position[1] + 1, self.position[0] + 5, self.type, 10, color)
         self.screen.addstr(self.position[1] + 1, self.position[0] + 17, "󰴱 ", color)
 
-    def clicked(self, clickType: int, clickPosition: list[int, int]) -> str | None:
+    def clickHandler(self, clickType: int, clickPosition: list[int, int]) -> str | None:
         relPos = subPos(clickPosition, self.position)
         if (clickType == nc.BUTTON1_PRESSED) and (relPos[0] >= 0) and (relPos[1] >= 0) and (relPos[0] < self.size[0]) and (relPos[1] < self.size[1]):
             if self.selected:
@@ -171,26 +171,13 @@ class Sheet(InteractibleWidget):
             self.position[0] + self.size[0]
         )
     
-    def clicked(self, clickType: int, clickPosition: list[int, int]) -> str | None:
-        for w in self.toolbar.interactibles:
-            if w.clicked(clickType, clickPosition):
-                if   w.name == "addInstrument":
-                    self.addInstrument()
-                elif w.name == "rmvInstrument":
-                    self.rmvInstrument()
-                elif w.name == "uppInstrument":
-                    self.move()
-                elif w.name == "dwnInstrument":
-                    self.move(False)
-
-                return w.name
-
+    def clickHandler(self, clickType: int, clickPosition: list[int, int]) -> str | None:
         relPos = subPos(clickPosition, self.position)
         if (relPos[0] >= 0) and (relPos[1] >= 0) and (relPos[0] < self.size[0]) and (relPos[1] < self.size[1]):
             if (relPos[0] >= 1) and (relPos[1] >= 1):
                 if clickType == nc.BUTTON1_PRESSED:
                     for i, ins in enumerate(self.instrumentList):
-                        if ins.clicked(clickType, [relPos[0] - 1, relPos[1] + self.instrumentScrollIndex - 1]):
+                        if ins.clickHandler(clickType, [relPos[0] - 1, relPos[1] + self.instrumentScrollIndex - 1]):
                             self.selectee = i
                 elif clickType == nc.BUTTON5_PRESSED:
                     if self.instrumentScrollIndex < self.pad.getmaxyx()[0] - self.size[1]:
@@ -246,7 +233,7 @@ CringeGlobals.mainToolbar = Layout(
             screen=screen,
             size=2
         ),
-        ToggleButton(
+        Button(
             screen=screen,
             name="normal",
             text="󱣱 Normal",
@@ -256,7 +243,7 @@ CringeGlobals.mainToolbar = Layout(
             screen=screen,
             size=2
         ),
-        ToggleButton(
+        Button(
             screen=screen,
             name="insert",
             text=" Insert",
@@ -273,7 +260,7 @@ CringeGlobals.mainToolbar = Layout(
             screen=screen,
             size=2
         ),
-        ToggleButton(
+        Button(
             screen=screen,
             name="settings",
             text=" Settings",
@@ -283,7 +270,7 @@ CringeGlobals.mainToolbar = Layout(
             screen=screen,
             size=2
         ),
-        ToggleButton(
+        Button(
             screen=screen,
             name="help",
             text=" Help",
@@ -317,6 +304,11 @@ CringeGlobals.sheet = Sheet(
     name="instrumentList",
     position=[0, 4]
 )
+
+CringeGlobals.eventHandler.subscribe("addInstrument", Sheet.addInstrument, sheet)
+CringeGlobals.eventHandler.subscribe("rmvInstrument", Sheet.rmvInstrument, sheet)
+CringeGlobals.eventHandler.subscribe("uppInstrument", Sheet.move, sheet)
+CringeGlobals.eventHandler.subscribe("dwnInstrument", Sheet.move, sheet, False)
 
 CringeGlobals.statusBar = StatusBar(
     screen=screen,

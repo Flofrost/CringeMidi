@@ -10,8 +10,8 @@ class Widget(metaclass=ABCMeta):
 
     def __init__(
         self,
-        screen:nc._CursesWindow,
-        name:str,
+        screen: nc._CursesWindow,
+        name: str,
         position: list[int, int] = None,
         size: list[int, int] = None
     ) -> None:
@@ -41,7 +41,7 @@ class InteractibleWidget(Widget, metaclass=ABCMeta):
         self.enabled = enabled
         
     @abstractmethod
-    def clicked(self, clickType:int, clickPosition:list[int, int]) -> str | None:
+    def clickHandler(self, clickType:int, clickPosition:list[int, int]) -> None:
         pass
 
 class Expander(Widget):
@@ -157,7 +157,6 @@ class Button(InteractibleWidget):
         name: str,
         text: str = "Button",
         position: list[int, int] = None,
-        size: list[int, int] = None,
         color: int = 0,
         enabled: bool = True
     ) -> None:
@@ -165,51 +164,19 @@ class Button(InteractibleWidget):
         size = [len(text), 1]
         super().__init__(screen, name, position, size, enabled)
 
+        self.state = False
         self.text = text
         self.color = color
-
-    def __str__(self) -> str:
-        return self.text
-
-    def draw(self):
-        color = nc.color_pair(self.color) if self.enabled else (nc.color_pair(CRINGE_COLOR_DSBL))
-        self.screen.addstr(self.position[1], self.position[0], self.text, color)
-
-    def clicked(self, clickType: int, clickPosition: list[int, int]) -> str | None:
-        if self.enabled and clickType == nc.BUTTON1_PRESSED:
-            relPos = subPos(clickPosition, self.position)
-            if (relPos[0] >= 0) and (relPos[1] >= 0) and (relPos[0] < self.size[0]) and (relPos[1] < self.size[1]):
-                return self.name
-
-class ToggleButton(Button):
-
-    def __init__(
-        self,
-        screen: nc._CursesWindow,
-        name: str,
-        text: str = "Button",
-        position: list[int, int] = None,
-        size: list[int, int] = None,
-        color: int = 0,
-        enabled: bool = True
-    ) -> None:
-
-        super().__init__(screen, name, text, position, size, color, enabled)
-
-        self.state = False
         
     def draw(self):
         color = (nc.color_pair(self.color) | nc.A_REVERSE) if self.state else nc.color_pair(self.color)
         self.screen.addstr(self.position[1], self.position[0], self.text, color)
 
-    def clicked(self, clickType: int, clickPosition: list[int, int]) -> str | None:
+    def clickHandler(self, clickType: int, clickPosition: list[int, int]) -> str | None:
         if self.enabled and clickType == nc.BUTTON1_PRESSED:
             relPos = subPos(clickPosition, self.position)
             if (relPos[0] >= 0) and (relPos[1] >= 0) and (relPos[0] < self.size[0]) and (relPos[1] < self.size[1]):
-                self.state = not self.state
-                self.draw()
-                return self.name
-        return False
+                CringeGlobals.eventHandler.raiseEvent(self.name)
     
 class Layout(Widget):
 

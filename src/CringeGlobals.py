@@ -10,6 +10,25 @@ CRINGE_ISTR_TYPES = [
     "noise"
 ]
 
+class EventHandler():
+
+    subscibers = {}
+    
+    def subscribe(self, event: str, responseFunction, object = None, *args):
+        try:
+            self.subscibers[event] += [responseFunction, object, args]
+        except KeyError:
+            self.subscibers[event] = [[responseFunction, object, args]]
+
+    def raiseEvent(self, event: str):
+        try:
+            for subscriber in self.subscibers[event]:
+                subscriber[0](subscriber[1], subscriber[2])
+        except KeyError:
+            pass
+
+eventHandler = EventHandler()
+
 activeMode      = None
 mainToolBar     = None
 mainToolBarLine = None
