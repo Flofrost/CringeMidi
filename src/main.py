@@ -12,22 +12,9 @@ if __name__ == "__main__":
     CringeDisplay.screen.nodelay(1)
     CringeDisplay.screen.timeout(20)
     
-    minSize = [CringeGlobals.mainToolbar.size[0], 15]
-    minW = CringeDisplay.screenSize[1] - minSize[0]
-    minH = CringeDisplay.screenSize[0] - minSize[1]
-    
-    while minW < 0 or minH < 0:
-        CringeDisplay.screenSize = CringeDisplay.screen.getmaxyx()
-        minSize = [CringeGlobals.mainToolbar.size[0] + 2, 17]
-        minW = CringeDisplay.screenSize[1] - minSize[0]
-        minH = CringeDisplay.screenSize[0] - minSize[1]
-
-        CringeDisplay.screen.erase()
-        CringeDisplay.screen.addch(0, 0, "")
-        CringeDisplay.screen.refresh()
-
     CringeModes.updateActiveMode("normal")
-    CringeDisplay.redrawScreen()
+
+    screenSize = CringeDisplay.screenResizeCheckerandUpdater()
     
     while True:
         
@@ -50,22 +37,7 @@ if __name__ == "__main__":
         else: # Keyboard events global handler
             CringeGlobals.activeMode.handleKeyboardEvents(event)
 
-        if nc.is_term_resized(CringeDisplay.screenSize[0], CringeDisplay.screenSize[1]): # Resize Controller
-            CringeDisplay.screenSize = CringeDisplay.screen.getmaxyx()
-            minSize = [CringeGlobals.mainToolbar.size[0], 15]
-            minW = CringeDisplay.screenSize[1] - minSize[0]
-            minH = CringeDisplay.screenSize[0] - minSize[1]
-            
-            while minW < 0 or minH < 0:
-                CringeDisplay.screenSize = CringeDisplay.screen.getmaxyx()
-                minSize = [CringeGlobals.mainToolbar.size[0] + 2, 17]
-                minW = CringeDisplay.screenSize[1] - minSize[0]
-                minH = CringeDisplay.screenSize[0] - minSize[1]
-
-                CringeDisplay.screen.erase()
-                CringeDisplay.screen.addch(0, 0, "")
-                CringeDisplay.screen.refresh()
-
-            CringeDisplay.redrawScreen()
+        if nc.is_term_resized(screenSize[0], screenSize[1]): # Resize Controller
+            screenSize = CringeDisplay.screenResizeCheckerandUpdater()
             
         CringeGlobals.statusBar.updateText(f" {CringeGlobals.lastEvent}", f"{CringeGlobals.debugInfo} ")

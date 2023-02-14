@@ -73,7 +73,7 @@ class Sheet(InteractibleWidget):
         position: list[int, int] = None,
     ) -> None:
         
-        size = [21, screen.getmaxyx()[0] - position[1] - 1]
+        size = [screen.getmaxyx()[1], screen.getmaxyx()[0] - position[1] - 1]
         super().__init__(screen, name, position, size, True)
 
         self.toolbar: Layout = Layout(
@@ -103,7 +103,7 @@ class Sheet(InteractibleWidget):
                 ),
                 Text(
                     screen=screen,
-                    text="---"
+                    text="--"
                 ),
                 Button(
                     screen=screen,
@@ -134,7 +134,7 @@ class Sheet(InteractibleWidget):
         self.selectee: int = 0
         
     def updateWidgetsPosition(self):
-        self.size = [21, self.screen.getmaxyx()[0] - self.position[1] - 1]
+        self.size = [screen.getmaxyx()[1], screen.getmaxyx()[0] - self.position[1] - 1]
         for i, ins in enumerate(self.instrumentList):
             ins.position = [0, i * 2]
             ins.selected = True if i == self.selectee else False
@@ -150,18 +150,23 @@ class Sheet(InteractibleWidget):
         
         self.toolbar.draw()
         HLine(screen=self.screen, position=[ 0, 3], expand=True).draw()
-        VLine(screen=self.screen, position=[21, 3], expand=True).draw()
-        self.screen.addch(3, 21, "┬")
+        VLine(screen=self.screen, position=[20, 3], expand=True).draw()
+        self.screen.addch(3, 20, "┬")
         self.pad.erase()
         for ins in self.instrumentList:
             ins.draw()
+
+        if self.selectee * 2 < self.instrumentScrollIndex:
+            self.instrumentScrollIndex = self.selectee * 2
+        elif self.selectee * 2 > self.instrumentScrollIndex + self.size[1] - 3:
+            self.instrumentScrollIndex = self.selectee * 2 - self.size[1] + 3
 
         self.screen.refresh()
         self.pad.refresh(
             self.instrumentScrollIndex,
             0,
             self.position[1] + 1,
-            self.position[0] + 1,
+            self.position[0],
             self.position[1] + self.size[1],
             self.position[0] + self.size[0]
         )
@@ -213,10 +218,6 @@ class Sheet(InteractibleWidget):
             
     def selectNext(self, next=True):
         self.selectee = (self.selectee + (1 if next else -1)) % len(self.instrumentList)
-        if self.selectee * 2 < self.instrumentScrollIndex:
-            self.instrumentScrollIndex = self.selectee * 2
-        elif self.selectee * 2 > self.instrumentScrollIndex + self.size[1] - 3:
-            self.instrumentScrollIndex = self.selectee * 2 - self.size[1] + 3
         self.draw()
         
     def move(self, up=True):

@@ -75,17 +75,17 @@ def getInput(prompt: str = "", limit: int = 50, attributes: int = 0) -> str | No
 
 def fixDecorativeLines():
     posToFix = []
-    for row in range(screenSize[0]):
-        for col in range(screenSize[1]):
+    for row in range(screen.getmaxyx()[0]):
+        for col in range(screen.getmaxyx()[1]):
             if chr(screen.inch(row, col)) == "┼":
                 index = 0
                 if row > 0 and chr(screen.inch(row - 1, col)) in ("┼", "│"):
                     index += 1
                 if col > 0 and chr(screen.inch(row, col - 1)) in ("┼", "─"):
                     index += 2
-                if row < screenSize[0] - 1 and chr(screen.inch(row + 1, col)) in ("┼", "│"):
+                if row < screen.getmaxyx()[0] - 1 and chr(screen.inch(row + 1, col)) in ("┼", "│"):
                     index += 4
-                if col < screenSize[1] - 1 and chr(screen.inch(row, col + 1)) in ("┼", "─"):
+                if col < screen.getmaxyx()[1] - 1 and chr(screen.inch(row, col + 1)) in ("┼", "─"):
                     index += 8
                 posToFix.append([row, col, index])
                 
@@ -101,10 +101,25 @@ def redrawScreen() -> None:
     CringeGlobals.activeMode.drawFunction()
 
     fixDecorativeLines()
+
+def screenResizeCheckerandUpdater() -> list[int, int]:
+    minW = screen.getmaxyx()[1] - CringeGlobals.mainToolbar.size[0]
+    minH = screen.getmaxyx()[0] - 15
+    
+    while minW < 0 or minH < 0:
+        minW = screen.getmaxyx()[1] - CringeGlobals.mainToolbar.size[0] - 2
+        minH = screen.getmaxyx()[0] - 15 - 2
+
+        screen.erase()
+        screen.addch(0, 0, "")
+        screen.refresh()
+
+    redrawScreen()
+    
+    return screen.getmaxyx()
 ### Definition of display functions###
 
 
 ### Initialisation of NCurses ###
 screen = initCringeMidi()
-screenSize = screen.getmaxyx()
 ### Initialisation of NCurses ###

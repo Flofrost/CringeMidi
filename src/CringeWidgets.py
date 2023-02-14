@@ -262,7 +262,7 @@ class Layout(Widget):
         sizeToFit = maxSize - self.position[self.__layout] - sizeToFit
         
         if sizeToFit < 0:
-            raise Exception("Can't fit all elements in available real estate")
+            raise Exception(f"Can't fit all elements in available real estate {self.name}")
             
         expantionSize = sizeToFit // len(listOfExpanders)
         for w in listOfExpanders:
