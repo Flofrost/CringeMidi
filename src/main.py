@@ -1,6 +1,7 @@
 #!/bin/python3
 from __future__ import annotations
 import curses as nc
+import traceback
 
 import CringeGlobals
 

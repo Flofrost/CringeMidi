@@ -11,8 +11,8 @@ class Widget(metaclass=ABCMeta):
 
     def __init__(
         self,
-        screen:nc._CursesWindow,
-        name:str,
+        screen: nc._CursesWindow,
+        name: str,
         position: list[int, int] = None,
         size: list[int, int] = None
     ) -> None:
@@ -167,6 +167,7 @@ class Button(InteractibleWidget):
         size = [len(text), 1]
         super().__init__(screen, name, position, size, enabled)
 
+        self.state = False
         self.text = text
         self.color = color
         self.event = eventToRaise
