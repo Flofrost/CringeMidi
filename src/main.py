@@ -2,42 +2,35 @@
 from __future__ import annotations
 import curses as nc
 
-import CringeDisplay
 import CringeGlobals
-import CringeModes
 
+try:
+    import CringeEvents
+    import CringeDisplay
 
-if __name__ == "__main__":
-
-    CringeDisplay.screen.nodelay(1)
-    CringeDisplay.screen.timeout(20)
+    CringeGlobals.screen.nodelay(1)
+    CringeGlobals.screen.timeout(20)
     
-    CringeModes.updateActiveMode("normal")
+    CringeEvents.raiseEvent("modeUpdate", "normal")
 
     screenSize = CringeDisplay.screenResizeCheckerandUpdater()
     
     while True:
         
-        event = CringeDisplay.screen.getch()
+        event = CringeGlobals.screen.getch()
         
         if event == nc.KEY_MOUSE: # Mouse Events global handler
             event = nc.getmouse()
             eventPosition = event[1:3]
             event = event[4]
-            
-            for widget in CringeGlobals.mainToolbar.interactibles:
-                if widget.clicked(event, eventPosition):
-                    if widget.name == "exit":
-                        CringeDisplay.terminationJudgement()
-                    else:
-                        CringeModes.updateActiveMode(widget.name)
-                    break
-            else:
-                CringeGlobals.activeMode.handleMouseEvents(event, eventPosition)
-        else: # Keyboard events global handler
-            CringeGlobals.activeMode.handleKeyboardEvents(event)
+            CringeEvents.raiseEvent("mouseEvent", event, eventPosition)
+        elif event != -1: # Keyboard events global handler
+            CringeEvents.raiseEvent("keyboardEvent", event)
 
         if nc.is_term_resized(screenSize[0], screenSize[1]): # Resize Controller
             screenSize = CringeDisplay.screenResizeCheckerandUpdater()
             
-        CringeGlobals.statusBar.updateText(f" {CringeGlobals.lastEvent}", f"{CringeGlobals.debugInfo} ")
+        CringeDisplay.statusBar.updateText(f" {CringeEvents.lastEvent}", f"{CringeGlobals.debugInfo} ")
+
+finally:
+    CringeGlobals.endCringeMidi()

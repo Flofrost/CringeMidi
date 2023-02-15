@@ -1,50 +1,128 @@
-from __future__ import annotations
 import curses as nc
-from signal import signal, SIGINT, SIGTERM
+from CringeEvents import *
+from CringeWidgets import *
 
-import CringeGlobals
+### Global ###
+mainToolbar = Layout(
+    screen=screen,
+    name="mainToolbar",
+    position=[0, 0],
+    contents=[
+        VLine(
+            screen=screen,
+            size=2
+        ),
+        Button(
+            screen=screen,
+            name="normal",
+            eventToRaise="modeUpdate",
+            text="󱣱 Normal",
+            color=nc.color_pair(CRINGE_COLOR_BLUE)
+        ),
+        VLine(
+            screen=screen,
+            size=2
+        ),
+        Button(
+            screen=screen,
+            name="insert",
+            eventToRaise="modeUpdate",
+            text=" Insert",
+            color=nc.color_pair(CRINGE_COLOR_BLUE)
+        ),
+        VLine(
+            screen=screen,
+            size=2
+        ),
+        Expander(
+            screen=screen
+        ),
+        VLine(
+            screen=screen,
+            size=2
+        ),
+        Button(
+            screen=screen,
+            name="settings",
+            eventToRaise="modeUpdate",
+            text=" Settings",
+            color=nc.color_pair(CRINGE_COLOR_BLUE)
+        ),
+        VLine(
+            screen=screen,
+            size=2
+        ),
+        Button(
+            screen=screen,
+            name="help",
+            eventToRaise="modeUpdate",
+            text=" Help",
+            color=nc.color_pair(CRINGE_COLOR_BLUE)
+        ),
+        VLine(
+            screen=screen,
+            size=2
+        ),
+        Button(
+            screen=screen,
+            name="exit",
+            eventToRaise="exit",
+            text=" Exit",
+            color=nc.color_pair(CRINGE_COLOR_BLUE)
+        ),
+        VLine(
+            screen=screen,
+            size=2
+        )
+    ]
+)
 
-### Definition of display functions###
-def initCringeMidi() -> nc._CursesWindow:
-    screen = nc.initscr()
-    nc.cbreak()
-    nc.noecho()
-    nc.curs_set(0)
-    nc.mouseinterval(0)
-    nc.set_escdelay(100)
-    screen.keypad(1)
+# project = Project(
+#     screen=screen,
+#     name="instrumentList",
+#     position=[0, 4]
+# )
 
-    if nc.has_colors():
-        nc.start_color()
-        nc.use_default_colors()
-        nc.init_pair(CringeGlobals.CRINGE_COLOR_BLUE,  39, -1)
-        nc.init_pair(CringeGlobals.CRINGE_COLOR_PRPL, 135, -1)
-        nc.init_pair(CringeGlobals.CRINGE_COLOR_DSBL, 245, -1)
-        nc.init_pair(CringeGlobals.CRINGE_COLOR_ISTR[0], 196, -1)
-        nc.init_pair(CringeGlobals.CRINGE_COLOR_ISTR[1],  40, -1)
-        nc.init_pair(CringeGlobals.CRINGE_COLOR_ISTR[2],  27, -1)
-        nc.init_pair(CringeGlobals.CRINGE_COLOR_ISTR[3], 200, -1)
-        nc.init_pair(CringeGlobals.CRINGE_COLOR_ISTR[4], 220, -1)
-        nc.init_pair(CringeGlobals.CRINGE_COLOR_ISTR[5],  51, -1)
+statusBar = StatusBar(
+    screen=screen,
+    color=CRINGE_COLOR_PRPL
+)
+### Global ###
 
-    nc.mousemask(-1)
-    
-    signal(SIGINT, terminationJudgement)
-    signal(SIGTERM, terminationJudgement)
+### Normal ###
+### Normal ###
 
-    return screen
+### Insert ###
+### Insert ###
 
-def terminationJudgement(*args):
-    endCringeMidi(screen=screen)
+### Settings ###
+### Settings ###
 
-def endCringeMidi(screen:nc._CursesWindow) -> None:
-    screen.keypad(0)
-    nc.curs_set(1)
-    nc.nocbreak()
-    nc.echo()
-    nc.endwin()
-    exit(0)
-    
+### Help ###
+### Help ###
+
+### Events Reactions ###
+def onModeUpdate(newMode: str | Widget):
+    if isinstance(newMode, Widget):
+        newMode = newMode.name
+    for modeButton in mainToolbar.interactibles:
+        if modeButton.name == newMode:
+            modeButton.color = modeButton.color | nc.A_REVERSE
+        else:
+            modeButton.color = modeButton.color & ~(nc.A_REVERSE)
+    redrawScreen()
+
+def modeButtonsClickHandler(clickType, clickPosition):
+    for button in mainToolbar.interactibles:
+        button.clickHandler(clickType, clickPosition)
+### Events Reactions ###
+
+### Subscribtions ###
+subscribe("modeUpdate", onModeUpdate)
+subscribe("mouseEvent", modeButtonsClickHandler)
+### Subscribtions ###
+
+### Functions ###
 def getInput(prompt: str = "", limit: int = 50, attributes: int = 0) -> str | None:
     screen.timeout(-1)
     
@@ -96,18 +174,23 @@ def fixDecorativeLines():
 def redrawScreen() -> None:
     screen.erase()
 
-    CringeGlobals.mainToolbar.draw()
-    CringeGlobals.mainToolBarLine.draw()
-    CringeGlobals.activeMode.drawFunction()
+    mainToolbar.draw()
+    HLine(
+        screen,
+        position=[0, 1],
+        expand=True
+    ).draw()
+    
+    # CringeGlobals.activeMode.drawFunction()
 
     fixDecorativeLines()
 
 def screenResizeCheckerandUpdater() -> list[int, int]:
-    minW = screen.getmaxyx()[1] - CringeGlobals.mainToolbar.size[0]
+    minW = screen.getmaxyx()[1] - mainToolbar.size[0]
     minH = screen.getmaxyx()[0] - 15
     
     while minW < 0 or minH < 0:
-        minW = screen.getmaxyx()[1] - CringeGlobals.mainToolbar.size[0] - 2
+        minW = screen.getmaxyx()[1] - mainToolbar.size[0] - 2
         minH = screen.getmaxyx()[0] - 15 - 2
 
         screen.erase()
@@ -117,9 +200,4 @@ def screenResizeCheckerandUpdater() -> list[int, int]:
     redrawScreen()
     
     return screen.getmaxyx()
-### Definition of display functions###
-
-
-### Initialisation of NCurses ###
-screen = initCringeMidi()
-### Initialisation of NCurses ###
+### Functions ###
