@@ -1,5 +1,6 @@
 subscribers = dict()
 lastEvent = ""
+lastUncaughtEvent = ""
 
 def subscribe(event: str, responseFunction):
     if not event in subscribers:
@@ -12,10 +13,12 @@ def unsubscribe(event: str, responseFunction):
     subscribers[event].remove(responseFunction)
     
 def raiseEvent(event: str, *data):
-    global lastEvent
-    if not event in ("mouseEvent", "keyboardEvent"): lastEvent = event
+    global lastEvent, lastUncaughtEvent
 
     if not event in subscribers:
+        if not event in ("mouseEvent", "keyboardEvent"): lastUncaughtEvent = event
         return
+
+    if not event in ("mouseEvent", "keyboardEvent"): lastEvent = event
     for responseFunction in subscribers[event]:
         responseFunction(*data)

@@ -1,6 +1,6 @@
 import curses as nc
 from CringeEvents import *
-from CringeGlobals import *
+import CringeGlobals
 from CringeWidgets import *
 
 ### Global ###
@@ -78,11 +78,11 @@ mainToolbar = Layout(
     ]
 )
 
-# project = Project(
-#     screen=screen,
-#     name="instrumentList",
-#     position=[0, 4]
-# )
+project = InstrumentList(
+    screen=screen,
+    name="instrumentList",
+    position=[0, 4]
+)
 
 statusBar = StatusBar(
     screen=screen,
@@ -132,8 +132,8 @@ class Mode():
 ### Normal ###
 placeholder = Button(
     screen=screen,
-    name="undo",
-    text=" -",
+    name="placeholder",
+    text=" ",
     # enabled=False
 )
 
@@ -162,8 +162,6 @@ dwnInstrumentBtn = Button(
                 )
 
 def normalKeyboardEvents(event: int):
-    global debugInfo
-
     if  event == ord("i"):
         raiseEvent("modeUpdate", "insert")
 
@@ -197,7 +195,7 @@ def normalKeyboardEvents(event: int):
     #     CringeGlobals.sheet.selectNext(next=False)
             
     else:
-        debugInfo = event
+        CringeGlobals.debugInfo = event
 ### Normal ###
 
 ### Insert ###
@@ -223,36 +221,62 @@ modeList = {
         widgets=[
             Layout(
                 screen=screen,
-                name="normalModeLayout",
+                name="normalToolbar",
                 position=[0, 2],
-                layoutVertical=True,
                 contents=[
-                    Layout(
+                    Text(
                         screen=screen,
-                        name="normalToolbar",
-                        # position=[1, 2],
-                        contents=[
-                            Text(
-                                screen=screen,
-                                text=" "
-                            ),
-                            placeholder,
-                            Text(
-                                screen=screen,
-                                text=" "
-                            ),
-                            Text(
-                                screen=screen,
-                                text=" "
-                            ),
-                        ]
+                        text="⠀"
                     ),
-                    HLine(
+                    placeholder,
+                    Text(
                         screen=screen,
-                        expand=True
-                    )
+                        text="⠀"
+                    ),
                 ]
-            )
+            ),
+            HLine(
+                screen=screen,
+                position=[0, 3],
+                expand=True
+            ),
+            Layout(
+                screen=screen,
+                name="instrumentListToolbar",
+                position=[0, 4],
+                maxSize=20,
+                contents=[
+                    Expander(
+                        screen=screen,
+                        filler="⠀"
+                    ),
+                    addInstrumentBtn,
+                    Text(
+                        screen=screen,
+                        text="⠀"
+                    ),
+                    rmvInstrumentBtn,
+                    Text(
+                        screen=screen,
+                        text="⠀⠀"
+                    ),
+                    uppInstrumentBtn,
+                    Text(
+                        screen=screen,
+                        text="⠀"
+                    ),
+                    dwnInstrumentBtn,
+                    Expander(
+                        screen=screen,
+                        filler="⠀"
+                    ),
+                ]
+            ),
+            VLine(
+                screen=screen,
+                position=[20, 3],
+                expand=True
+            ),
         ],
         keyboardEventHandler=normalKeyboardEvents
     ),
@@ -367,26 +391,6 @@ def getInput(prompt: str = "", limit: int = 50, attributes: int = 0) -> str | No
 
     return string
 
-def fixDecorativeLines():
-    posToFix = []
-    for row in range(screen.getmaxyx()[0]):
-        for col in range(screen.getmaxyx()[1]):
-            if chr(screen.inch(row, col)) == "┼":
-                index = 0
-                if row > 0 and chr(screen.inch(row - 1, col)) in ("┼", "│"):
-                    index += 1
-                if col > 0 and chr(screen.inch(row, col - 1)) in ("┼", "─"):
-                    index += 2
-                if row < screen.getmaxyx()[0] - 1 and chr(screen.inch(row + 1, col)) in ("┼", "│"):
-                    index += 4
-                if col < screen.getmaxyx()[1] - 1 and chr(screen.inch(row, col + 1)) in ("┼", "─"):
-                    index += 8
-                posToFix.append([row, col, index])
-                
-    for p in posToFix:
-        #                        0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
-        screen.addch(p[0], p[1], (" ", " ", " ", "┘", " ", "│", "┐", "┤", " ", "└", "─", "┴", "┌", "├", "┬", "┼")[p[2]])
-
 def redrawScreen() -> None:
     # global activeMode
     screen.erase()
@@ -399,8 +403,6 @@ def redrawScreen() -> None:
     ).draw()
     
     activeMode.drawFunction()
-
-    fixDecorativeLines()
 
 def screenResizeCheckerandUpdater() -> list[int, int]:
     minW = screen.getmaxyx()[1] - mainToolbar.size[0]

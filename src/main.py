@@ -31,7 +31,7 @@ try:
         if nc.is_term_resized(screenSize[0], screenSize[1]): # Resize Controller
             screenSize = CringeDisplay.screenResizeCheckerandUpdater()
             
-        CringeDisplay.statusBar.updateText(f" {CringeEvents.lastEvent}", f"{CringeGlobals.debugInfo} ")
+        CringeDisplay.statusBar.updateText(f" Caught: {CringeEvents.lastEvent} Uncaught: {CringeEvents.lastUncaughtEvent}", f"{CringeGlobals.debugInfo} ")
 
 finally:
     CringeGlobals.endCringeMidi()

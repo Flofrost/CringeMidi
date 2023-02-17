@@ -7,6 +7,9 @@ from CringeEvents import raiseEvent
 from CringeGlobals import *
 from CringeMisc import *
 
+#                  0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
+lineComponents = ("•", "↓", "→", "┘", "↑", "│", "┐", "┤", "←", "└", "─", "┴", "┌", "├", "┬", "┼")
+
 class Widget(metaclass=ABCMeta):
 
     def __init__(
@@ -97,6 +100,19 @@ class HLine(Widget):
                 self.screen.addch(self.position[1], relPos, "┼", nc.color_pair(self.color))
             else:
                 self.screen.addch(self.position[1], relPos, "─", nc.color_pair(self.color))
+        for i in range(self.size[0]):
+            col = self.position[0] + i
+            if chr(screen.inch(self.position[1], col)) == "┼":
+                index = 0
+                if self.position[1] > 0 and chr(screen.inch(self.position[1] - 1, col)) in ("┼", "│"):
+                    index += 1
+                if col > 0 and chr(screen.inch(self.position[1], col - 1)) in ("┼", "─"):
+                    index += 2
+                if self.position[1] < screen.getmaxyx()[0] - 1 and chr(screen.inch(self.position[1] + 1, col)) in ("┼", "│"):
+                    index += 4
+                if col < screen.getmaxyx()[1] - 1 and chr(screen.inch(self.position[1], col + 1)) in ("┼", "─"):
+                    index += 8
+                self.screen.addch(self.position[1], col, lineComponents[index], self.color)
                     
 class VLine(Widget):
 
@@ -123,6 +139,7 @@ class VLine(Widget):
     def draw(self):
         if self.expand:
             self.size = [1, self.screen.getmaxyx()[0] - self.position[1]]
+
         for j in range(self.size[1]):
             relPos = self.position[1] + j
             char = chr(self.screen.inch(relPos, self.position[0]))
@@ -130,7 +147,21 @@ class VLine(Widget):
                 self.screen.addch(relPos, self.position[0], "┼", nc.color_pair(self.color))
             else:
                 self.screen.addch(relPos, self.position[0], "│", nc.color_pair(self.color))
-
+        
+        for j in range(self.size[1]):
+            row = self.position[1] + j
+            if chr(screen.inch(row, self.position[0])) == "┼":
+                index = 0
+                if row > 0 and chr(screen.inch(row - 1, self.position[0])) in ("┼", "│"):
+                    index += 1
+                if self.position[0] > 0 and chr(screen.inch(row, self.position[0] - 1)) in ("┼", "─"):
+                    index += 2
+                if row < screen.getmaxyx()[0] - 1 and chr(screen.inch(row + 1, self.position[0])) in ("┼", "│"):
+                    index += 4
+                if self.position[0] < screen.getmaxyx()[1] - 1 and chr(screen.inch(row, self.position[0] + 1)) in ("┼", "─"):
+                    index += 8
+                self.screen.addch(row, self.position[0], lineComponents[index], self.color)
+                    
 class Text(Widget):
 
     def __init__(
@@ -338,7 +369,7 @@ class Instrument(InteractibleWidget):
     def toggleVisible(self):
         self.visible = not self.visible
 
-class Project(InteractibleWidget):
+class InstrumentList(InteractibleWidget):
     
     def __init__(
         self,
@@ -362,19 +393,15 @@ class Project(InteractibleWidget):
             ins.position = [0, i * 2]
             ins.selected = True if i == self.selectee else False
 
-    def updateToolbar(self):
-        self.toolbar.contents[3].enabled = True if len(self.instrumentList) > 1 else False
-        self.toolbar.contents[5].enabled = True if self.selectee > 0 else False
-        self.toolbar.contents[7].enabled = True if self.selectee < len(self.instrumentList) - 1 else False
+    # def updateToolbar(self):
+    #     self.toolbar.contents[3].enabled = True if len(self.instrumentList) > 1 else False
+    #     self.toolbar.contents[5].enabled = True if self.selectee > 0 else False
+    #     self.toolbar.contents[7].enabled = True if self.selectee < len(self.instrumentList) - 1 else False
 
     def draw(self) -> None:
         self.updateToolbar()
         self.updateWidgetsPosition()
         
-        self.toolbar.draw()
-        HLine(screen=self.screen, position=[ 0, 3], expand=True).draw()
-        VLine(screen=self.screen, position=[20, 3], expand=True).draw()
-        self.screen.addch(3, 20, "┬")
         self.pad.erase()
         for ins in self.instrumentList:
             ins.draw()
