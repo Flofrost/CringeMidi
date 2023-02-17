@@ -198,7 +198,6 @@ class Button(InteractibleWidget):
         size = [len(text), 1]
         super().__init__(screen, name, position, size, enabled)
 
-        self.state = False
         self.text = text
         self.color = color
         self.event = eventToRaise if eventToRaise else name
@@ -207,7 +206,8 @@ class Button(InteractibleWidget):
         return self.text
 
     def draw(self):
-        self.screen.addstr(self.position[1], self.position[0], self.text, self.color)
+        color = self.color if self.enabled else nc.color_pair(CRINGE_COLOR_DSBL)
+        self.screen.addstr(self.position[1], self.position[0], self.text, color)
 
     def clickHandler(self, clickType: int, clickPosition: list[int, int]) -> None:
         if self.enabled and clickType == nc.BUTTON1_PRESSED:
@@ -311,7 +311,7 @@ class StatusBar():
         self.text = [textL, textR]
         self.draw()
 
-class Instrument(InteractibleWidget):
+class Instrument():
     
     def __init__(
         self,
@@ -322,8 +322,10 @@ class Instrument(InteractibleWidget):
         color: int = 10
     ) -> None:
 
-        super().__init__(screen, name, None, [20,2], True)
-
+        self.screen = screen
+        self.name = name
+        self.position = [0, 0]
+        self.size = [20, 2]
         self.notes = []
         self.type = insType
         self.visible = visible
@@ -339,7 +341,7 @@ class Instrument(InteractibleWidget):
         self.screen.addnstr(self.position[1] + 1, self.position[0] + 5, self.type, 10, color)
         self.screen.addstr(self.position[1] + 1, self.position[0] + 17, "󰴱 ", color)
 
-    def clickHandler(self, clickType: int, clickPosition: list[int, int]) -> str | None:
+    def isClicked(self, clickType: int, clickPosition: list[int, int]) -> bool:
         relPos = subPos(clickPosition, self.position)
         if (clickType == nc.BUTTON1_PRESSED) and (relPos[0] >= 0) and (relPos[1] >= 0) and (relPos[0] < self.size[0]) and (relPos[1] < self.size[1]):
             if self.selected:
@@ -351,7 +353,8 @@ class Instrument(InteractibleWidget):
                     self.changeType()
                 elif relPos[0] > 1 and relPos[0] < 17 and relPos[1] == 0:
                     self.changeName()
-            return self.name
+            return True
+        return False
     
     def changeType(self):
         insTypeList = CRINGE_ISTR_TYPES
@@ -362,9 +365,8 @@ class Instrument(InteractibleWidget):
         self.color = colorList[(colorList.index(self.color) + 1) % len(colorList)]
         
     def changeName(self):
-        # newName = getInput(prompt="New Name : ", limit=18, attributes=nc.color_pair(self.color) | nc.A_REVERSE)
-        # if newName: self.name = newName
-        pass
+        newName = getInput(prompt="New Name : ", limit=18, attributes=nc.color_pair(self.color) | nc.A_REVERSE)
+        if newName: self.name = newName
         
     def toggleVisible(self):
         self.visible = not self.visible
@@ -393,13 +395,7 @@ class InstrumentList(InteractibleWidget):
             ins.position = [0, i * 2]
             ins.selected = True if i == self.selectee else False
 
-    # def updateToolbar(self):
-    #     self.toolbar.contents[3].enabled = True if len(self.instrumentList) > 1 else False
-    #     self.toolbar.contents[5].enabled = True if self.selectee > 0 else False
-    #     self.toolbar.contents[7].enabled = True if self.selectee < len(self.instrumentList) - 1 else False
-
     def draw(self) -> None:
-        self.updateToolbar()
         self.updateWidgetsPosition()
         
         self.pad.erase()
@@ -421,66 +417,55 @@ class InstrumentList(InteractibleWidget):
             self.position[0] + self.size[0]
         )
     
-    def clickHandler(self, clickType: int, clickPosition: list[int, int]) -> str | None:
-        for w in self.toolbar.interactibles:
-            if w.clickHandler(clickType, clickPosition):
-                if   w.name == "addInstrument":
-                    self.addInstrument()
-                elif w.name == "rmvInstrument":
-                    self.rmvInstrument()
-                elif w.name == "uppInstrument":
-                    self.move()
-                elif w.name == "dwnInstrument":
-                    self.move(False)
-
-                return w.name
-
+    def clickHandler(self, clickType: int, clickPosition: list[int, int]) -> None:
         relPos = subPos(clickPosition, self.position)
         if (relPos[0] >= 0) and (relPos[1] >= 0) and (relPos[0] < self.size[0]) and (relPos[1] < self.size[1]):
-            if (relPos[0] >= 1) and (relPos[1] >= 1):
-                if clickType == nc.BUTTON1_PRESSED:
-                    for i, ins in enumerate(self.instrumentList):
-                        if ins.clickHandler(clickType, [relPos[0] - 1, relPos[1] + self.instrumentScrollIndex - 1]):
-                            self.selectee = i
-                elif clickType == nc.BUTTON5_PRESSED:
-                    if self.instrumentScrollIndex < self.pad.getmaxyx()[0] - self.size[1]:
-                        self.instrumentScrollIndex += 1
-                        self.draw()
-                elif clickType == nc.BUTTON4_PRESSED:
-                    if self.instrumentScrollIndex > 0:
-                        self.instrumentScrollIndex -= 1
-                        self.draw()
+            if clickType == nc.BUTTON1_PRESSED:
+                for i, ins in enumerate(self.instrumentList):
+                    if ins.isClicked(clickType, [relPos[0] - 1, relPos[1] + self.instrumentScrollIndex - 1]):
+                        self.selectee = i
+            elif clickType == nc.BUTTON5_PRESSED:
+                if self.instrumentScrollIndex < self.pad.getmaxyx()[0] - self.size[1]:
+                    self.instrumentScrollIndex += 1
+            elif clickType == nc.BUTTON4_PRESSED:
+                if self.instrumentScrollIndex > 0:
+                    self.instrumentScrollIndex -= 1
             self.draw()
-            return "intrumentEvent"
             
-    def addInstrument(self):
+    def addInstrument(self, *_):
         self.instrumentList.append(Instrument(screen=self.pad, color=randint(CRINGE_COLOR_ISTR[0], CRINGE_COLOR_ISTR[-1])))
         if len(self.instrumentList) + 1 > self.pad.getmaxyx()[0] // 2:
             self.pad.resize(len(self.instrumentList) * 2 + 7, 20)
         self.draw()
+        raiseEvent("instrumentListUpdate", self)
     
-    def rmvInstrument(self):
+    def rmvInstrument(self, *_):
         self.instrumentList.remove(self.instrumentList[self.selectee])
         self.selectee = self.selectee % len(self.instrumentList)
         if (self.pad.getmaxyx()[0] // 2) - len(self.instrumentList) > 6:
             self.pad.resize(len(self.instrumentList) * 2 + 7, 20)
         self.draw()
+        raiseEvent("instrumentListUpdate", self)
             
     def selectNext(self, next=True):
         self.selectee = (self.selectee + (1 if next else -1)) % len(self.instrumentList)
         self.draw()
         
-    def move(self, up=True):
-        if up and self.selectee > 0:
+    def uppInstrument(self, *_):
+        if self.selectee > 0:
             ins = self.instrumentList.pop(self.selectee)
             self.selectee -= 1
             self.instrumentList.insert(self.selectee, ins)
             self.draw()
-        elif not up and self.selectee < len(self.instrumentList) - 1:
+        raiseEvent("instrumentListUpdate", self)
+            
+    def dwnInstrument(self, *_):
+        if self.selectee < len(self.instrumentList) - 1:
             ins = self.instrumentList.pop(self.selectee)
             self.selectee += 1
             self.instrumentList.insert(self.selectee, ins)
             self.draw()
+        raiseEvent("instrumentListUpdate", self)
 
     @property
     def selectedInstrument(self) -> Instrument:

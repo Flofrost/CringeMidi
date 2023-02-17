@@ -78,7 +78,7 @@ mainToolbar = Layout(
     ]
 )
 
-project = InstrumentList(
+instrumentList = InstrumentList(
     screen=screen,
     name="instrumentList",
     position=[0, 4]
@@ -96,19 +96,25 @@ class Mode():
     def __init__(
             self,
             widgets: list[Widget] = None,
-            keyboardEventHandler = None
+            keyboardEventHandler = None,
+            eventListeners: list = None
         ) -> None:
         
         self.widgets  = widgets
         self.keyboardEventsHandler = keyboardEventHandler
+        self.listeners = eventListeners if eventListeners else []
 
     def loadMode(self):
         subscribe("keyboardEvent", self.keyboardEventsHandler)
         subscribe("mouseEvent", self.handleMouseEvents)
+        for listerner in self.listeners:
+            subscribe(listerner[0], listerner[1])
         
     def unloadMode(self):
         unsubscribe("keyboardEvent", self.keyboardEventsHandler)
         unsubscribe("mouseEvent", self.handleMouseEvents)
+        for listerner in self.listeners:
+            unsubscribe(listerner[0], listerner[1])
 
     def drawFunction(self) -> None:
         for w in self.widgets:
@@ -196,6 +202,17 @@ def normalKeyboardEvents(event: int):
             
     else:
         CringeGlobals.debugInfo = event
+
+def onInstrumentListUpdate(instrumentList: InstrumentList):
+    global rmvInstrumentBtn, uppInstrumentBtn, dwnInstrumentBtn
+
+    rmvInstrumentBtn.enabled = True if len(instrumentList.instrumentList) > 1 else False
+    uppInstrumentBtn.enabled = True if instrumentList.selectee > 0 else False
+    dwnInstrumentBtn.enabled = True if instrumentList.selectee < len(instrumentList.instrumentList) - 1 else False
+    
+    rmvInstrumentBtn.draw()
+    uppInstrumentBtn.draw()
+    dwnInstrumentBtn.draw()
 ### Normal ###
 
 ### Insert ###
@@ -218,6 +235,14 @@ def settingsKeyboardEvents(event: int):
 
 modeList = {
     "normal" : Mode(
+        keyboardEventHandler=normalKeyboardEvents,
+        eventListeners=[
+            ["instrumentListUpdate", onInstrumentListUpdate],
+            ["addInstrument", instrumentList.addInstrument],
+            ["rmvInstrument", instrumentList.rmvInstrument],
+            ["uppInstrument", instrumentList.uppInstrument],
+            ["dwnInstrument", instrumentList.dwnInstrument],
+        ],
         widgets=[
             Layout(
                 screen=screen,
@@ -277,18 +302,19 @@ modeList = {
                 position=[20, 3],
                 expand=True
             ),
-        ],
-        keyboardEventHandler=normalKeyboardEvents
+            instrumentList,
+        ]
     ),
     "insert" : Mode(
+        keyboardEventHandler=insertKeyboardEvents,
         widgets=[],
-        keyboardEventHandler=insertKeyboardEvents
     ),
     "settings" : Mode(
+        keyboardEventHandler=settingsKeyboardEvents,
         widgets=[],
-        keyboardEventHandler=settingsKeyboardEvents
     ),
     "help" : Mode(
+        keyboardEventHandler=helpKeyboardEvents,
         widgets=[
             Layout(
                 screen=screen,
@@ -327,7 +353,6 @@ modeList = {
                 expand=True
             )
         ],
-        keyboardEventHandler=helpKeyboardEvents
     )
 }
 
@@ -363,34 +388,6 @@ subscribe("mouseEvent", modeButtonsClickHandler)
 ### Subscribtions ###
 
 ### Functions ###
-def getInput(prompt: str = "", limit: int = 50, attributes: int = 0) -> str | None:
-    screen.timeout(-1)
-    
-    string = ""
-    while True:
-        screen.addstr(screen.getmaxyx()[0] - 1, 0, " " * (screen.getmaxyx()[1] - 1), attributes)
-        screen.addstr(screen.getmaxyx()[0] - 1, 0, f" {prompt}{string}_", attributes)
-
-        event = screen.getkey()
-        if event == "\x1b": # Escape
-            string = None
-            break
-        elif event == "\n": # Return
-            if not len(string):
-                string = None
-            break
-        elif event == "KEY_BACKSPACE": # Backspace
-            if len(string) > 1:
-                string = string[:len(string)-1]
-            else:
-                string = ""
-        elif event.isprintable() and len(event) == 1:
-            if len(string) < limit:
-                string += event
-    screen.timeout(20)
-
-    return string
-
 def redrawScreen() -> None:
     # global activeMode
     screen.erase()
