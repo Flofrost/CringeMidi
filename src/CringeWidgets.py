@@ -402,11 +402,6 @@ class InstrumentList(InteractibleWidget):
         for ins in self.instrumentList:
             ins.draw()
 
-        if self.selectee * 2 < self.instrumentScrollIndex:
-            self.instrumentScrollIndex = self.selectee * 2
-        elif self.selectee * 2 > self.instrumentScrollIndex + self.size[1] - 3:
-            self.instrumentScrollIndex = self.selectee * 2 - self.size[1] + 3
-
         self.screen.refresh()
         self.pad.refresh(
             self.instrumentScrollIndex,
@@ -422,15 +417,20 @@ class InstrumentList(InteractibleWidget):
         if (relPos[0] >= 0) and (relPos[1] >= 0) and (relPos[0] < self.size[0]) and (relPos[1] < self.size[1]):
             if clickType == nc.BUTTON1_PRESSED:
                 for i, ins in enumerate(self.instrumentList):
-                    if ins.isClicked(clickType, [relPos[0] - 1, relPos[1] + self.instrumentScrollIndex - 1]):
+                    if ins.isClicked(clickType, [relPos[0], relPos[1] + self.instrumentScrollIndex - 1]):
                         self.selectee = i
+                self.draw()
+                raiseEvent("instrumentListUpdate", self)
             elif clickType == nc.BUTTON5_PRESSED:
                 if self.instrumentScrollIndex < self.pad.getmaxyx()[0] - self.size[1]:
                     self.instrumentScrollIndex += 1
+                self.draw()
+                raiseEvent("instrumentListUpdate", self)
             elif clickType == nc.BUTTON4_PRESSED:
                 if self.instrumentScrollIndex > 0:
                     self.instrumentScrollIndex -= 1
-            self.draw()
+                self.draw()
+                raiseEvent("instrumentListUpdate", self)
             
     def addInstrument(self, *_):
         self.instrumentList.append(Instrument(screen=self.pad, color=randint(CRINGE_COLOR_ISTR[0], CRINGE_COLOR_ISTR[-1])))
@@ -440,15 +440,22 @@ class InstrumentList(InteractibleWidget):
         raiseEvent("instrumentListUpdate", self)
     
     def rmvInstrument(self, *_):
-        self.instrumentList.remove(self.instrumentList[self.selectee])
-        self.selectee = self.selectee % len(self.instrumentList)
-        if (self.pad.getmaxyx()[0] // 2) - len(self.instrumentList) > 6:
-            self.pad.resize(len(self.instrumentList) * 2 + 7, 20)
-        self.draw()
+        if len(self.instrumentList) > 1:
+            self.instrumentList.remove(self.instrumentList[self.selectee])
+            self.selectee = self.selectee % len(self.instrumentList)
+            if (self.pad.getmaxyx()[0] // 2) - len(self.instrumentList) > 6:
+                self.pad.resize(len(self.instrumentList) * 2 + 7, 20)
+            self.draw()
         raiseEvent("instrumentListUpdate", self)
             
     def selectNext(self, next=True):
         self.selectee = (self.selectee + (1 if next else -1)) % len(self.instrumentList)
+
+        if self.selectee * 2 < self.instrumentScrollIndex:
+            self.instrumentScrollIndex = self.selectee * 2
+        elif self.selectee * 2 > self.instrumentScrollIndex + self.size[1] - 3:
+            self.instrumentScrollIndex = self.selectee * 2 - self.size[1] + 3
+
         self.draw()
         
     def uppInstrument(self, *_):
@@ -466,6 +473,17 @@ class InstrumentList(InteractibleWidget):
             self.instrumentList.insert(self.selectee, ins)
             self.draw()
         raiseEvent("instrumentListUpdate", self)
+        
+    def changeInstrument(self, thingToChange: str):
+        if   thingToChange == "visible":
+            self.selectedInstrument.toggleVisible()
+        elif thingToChange == "name":
+            self.selectedInstrument.changeName()
+        elif thingToChange == "type":
+            self.selectedInstrument.changeType()
+        elif thingToChange == "color":
+            self.selectedInstrument.changeColor()
+        self.draw()
 
     @property
     def selectedInstrument(self) -> Instrument:

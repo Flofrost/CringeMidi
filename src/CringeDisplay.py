@@ -136,11 +136,17 @@ class Mode():
 ### Mode Manager Class ###
 
 ### Normal ###
-placeholder = Button(
+undoBtn = Button(
     screen=screen,
-    name="placeholder",
-    text=" ",
-    # enabled=False
+    name="undo",
+    text="󰕍 ",
+    enabled=False
+)
+redoBtn = Button(
+    screen=screen,
+    name="redo",
+    text="󰑏 ",
+    enabled=False
 )
 
 addInstrumentBtn = Button(
@@ -168,38 +174,36 @@ dwnInstrumentBtn = Button(
                 )
 
 def normalKeyboardEvents(event: int):
+    global instrumentList
+
     if  event == ord("i"):
         raiseEvent("modeUpdate", "insert")
 
     elif event == ord("u"):
         raiseEvent("undo")
+    elif event == ord("r"):
+        raiseEvent("redo")
 
-    # elif event == ord("n"):
-    #     CringeGlobals.sheet.addInstrument()
-    # elif event == ord("N"):
-    #     if len(CringeGlobals.sheet.instrumentList) > 1:
-    #         CringeGlobals.sheet.rmvInstrument()
-    # elif event == ord("J"):
-    #     CringeGlobals.sheet.move(False)
-    # elif event == ord("K"):
-    #     CringeGlobals.sheet.move()
-    # elif event == ord("C"):
-    #     CringeGlobals.sheet.selectedInstrument.changeColor()
-    #     CringeGlobals.sheet.draw()
-    # elif event == ord("V"):
-    #     CringeGlobals.sheet.selectedInstrument.toggleVisible()
-    #     CringeGlobals.sheet.draw()
-    # elif event == ord("T"):
-    #     CringeGlobals.sheet.selectedInstrument.changeType()
-    #     CringeGlobals.sheet.draw()
-    # elif event == ord("L"):
-    #     CringeGlobals.sheet.selectedInstrument.changeName()
-    #     CringeGlobals.sheet.draw()
-    # elif event == kbKeys["SHIFT+DOWN"]:
-    #     CringeGlobals.sheet.selectNext()
-    # elif event == kbKeys["SHIFT+UP"]:
-    #     CringeGlobals.sheet.selectNext(next=False)
-            
+    elif event == ord("N"):
+        raiseEvent("addInstrument")
+    elif event == ord("D"):
+        raiseEvent("rmvInstrument")
+    elif event == ord("J"):
+        raiseEvent("dwnInstrument")
+    elif event == ord("K"):
+        raiseEvent("uppInstrument")
+    elif event == ord("C"):
+        raiseEvent("changeInstrument", "color")
+    elif event == ord("V"):
+        raiseEvent("changeInstrument", "visible")
+    elif event == ord("T"):
+        raiseEvent("changeInstrument", "type")
+    elif event == ord("R"):
+        raiseEvent("changeInstrument", "name")
+    elif event == nc.KEY_DOWN:
+        instrumentList.selectNext()
+    elif event == nc.KEY_UP:
+        instrumentList.selectNext(False)
     else:
         CringeGlobals.debugInfo = event
 
@@ -242,6 +246,7 @@ modeList = {
             ["rmvInstrument", instrumentList.rmvInstrument],
             ["uppInstrument", instrumentList.uppInstrument],
             ["dwnInstrument", instrumentList.dwnInstrument],
+            ["changeInstrument", instrumentList.changeInstrument]
         ],
         widgets=[
             Layout(
@@ -253,7 +258,12 @@ modeList = {
                         screen=screen,
                         text="⠀"
                     ),
-                    placeholder,
+                    undoBtn,
+                    Text(
+                        screen=screen,
+                        text="⠀"
+                    ),
+                    redoBtn,
                     Text(
                         screen=screen,
                         text="⠀"
@@ -402,11 +412,11 @@ def redrawScreen() -> None:
     activeMode.drawFunction()
 
 def screenResizeCheckerandUpdater() -> list[int, int]:
-    minW = screen.getmaxyx()[1] - mainToolbar.size[0]
+    minW = screen.getmaxyx()[1] - max(mainToolbar.size[0], len("".join(statusBar.text)))
     minH = screen.getmaxyx()[0] - 15
     
     while minW < 0 or minH < 0:
-        minW = screen.getmaxyx()[1] - mainToolbar.size[0] - 2
+        minW = screen.getmaxyx()[1] - max(mainToolbar.size[0], len("".join(statusBar.text))) - 2
         minH = screen.getmaxyx()[0] - 15 - 2
 
         screen.erase()

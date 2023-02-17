@@ -8,7 +8,7 @@ from CringeEvents import *
 CRINGE_COLOR_BLUE = 1
 CRINGE_COLOR_PRPL = 2
 CRINGE_COLOR_DSBL = 3
-CRINGE_COLOR_ISTR = [10, 11, 12, 13, 14, 15]
+CRINGE_COLOR_ISTR = [10, 11, 12, 13, 14, 15, 16, 17, 18]
 
 CRINGE_ISTR_TYPES = [
     "sine",
@@ -49,6 +49,9 @@ def initCringeMidi() -> nc._CursesWindow:
         nc.init_pair(CRINGE_COLOR_ISTR[3], 200, -1)
         nc.init_pair(CRINGE_COLOR_ISTR[4], 220, -1)
         nc.init_pair(CRINGE_COLOR_ISTR[5],  51, -1)
+        nc.init_pair(CRINGE_COLOR_ISTR[6], 202, -1)
+        nc.init_pair(CRINGE_COLOR_ISTR[7],  22, -1)
+        nc.init_pair(CRINGE_COLOR_ISTR[8],  93, -1)
 
     nc.mousemask(-1)
     
