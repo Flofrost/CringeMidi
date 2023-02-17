@@ -1,5 +1,6 @@
 import curses as nc
 from CringeEvents import *
+from CringeGlobals import *
 from CringeWidgets import *
 
 ### Global ###
@@ -89,20 +90,230 @@ statusBar = StatusBar(
 )
 ### Global ###
 
+### Mode Manager Class ###
+class Mode():
+    
+    def __init__(
+            self,
+            widgets: list[Widget] = None,
+            keyboardEventHandler = None
+        ) -> None:
+        
+        self.widgets  = widgets
+        self.keyboardEventsHandler = keyboardEventHandler
+
+    def loadMode(self):
+        subscribe("keyboardEvent", self.keyboardEventsHandler)
+        subscribe("mouseEvent", self.handleMouseEvents)
+        
+    def unloadMode(self):
+        unsubscribe("keyboardEvent", self.keyboardEventsHandler)
+        unsubscribe("mouseEvent", self.handleMouseEvents)
+
+    def drawFunction(self) -> None:
+        for w in self.widgets:
+            w.draw()
+    
+    def handleMouseEvents(self, event: int, eventPosition: list[int, int]) -> None:
+        for w in self.interactibles:
+            w.clickHandler(event, eventPosition)
+        
+    @property
+    def interactibles(self) -> list[InteractibleWidget]:
+        listOfInteractibles = []
+        for w in self.widgets:
+            if isinstance(w, Layout):
+                listOfInteractibles += w.interactibles
+            elif isinstance(w, InteractibleWidget):
+                listOfInteractibles.append(w)
+        return listOfInteractibles
+### Mode Manager Class ###
+
 ### Normal ###
+placeholder = Button(
+    screen=screen,
+    name="undo",
+    text=" -",
+    # enabled=False
+)
+
+addInstrumentBtn = Button(
+                    screen=screen,
+                    name="addInstrument",
+                    text=" "
+                )
+rmvInstrumentBtn = Button(
+                    screen=screen,
+                    name="rmvInstrument",
+                    text=" ",
+                    enabled=False
+                )
+uppInstrumentBtn = Button(
+                    screen=screen,
+                    name="uppInstrument",
+                    text=" ",
+                    enabled=False
+                )
+dwnInstrumentBtn = Button(
+                    screen=screen,
+                    name="dwnInstrument",
+                    text=" ",
+                    enabled=False
+                )
+
+def normalKeyboardEvents(event: int):
+    global debugInfo
+
+    if  event == ord("i"):
+        raiseEvent("modeUpdate", "insert")
+
+    elif event == ord("u"):
+        raiseEvent("undo")
+
+    # elif event == ord("n"):
+    #     CringeGlobals.sheet.addInstrument()
+    # elif event == ord("N"):
+    #     if len(CringeGlobals.sheet.instrumentList) > 1:
+    #         CringeGlobals.sheet.rmvInstrument()
+    # elif event == ord("J"):
+    #     CringeGlobals.sheet.move(False)
+    # elif event == ord("K"):
+    #     CringeGlobals.sheet.move()
+    # elif event == ord("C"):
+    #     CringeGlobals.sheet.selectedInstrument.changeColor()
+    #     CringeGlobals.sheet.draw()
+    # elif event == ord("V"):
+    #     CringeGlobals.sheet.selectedInstrument.toggleVisible()
+    #     CringeGlobals.sheet.draw()
+    # elif event == ord("T"):
+    #     CringeGlobals.sheet.selectedInstrument.changeType()
+    #     CringeGlobals.sheet.draw()
+    # elif event == ord("L"):
+    #     CringeGlobals.sheet.selectedInstrument.changeName()
+    #     CringeGlobals.sheet.draw()
+    # elif event == kbKeys["SHIFT+DOWN"]:
+    #     CringeGlobals.sheet.selectNext()
+    # elif event == kbKeys["SHIFT+UP"]:
+    #     CringeGlobals.sheet.selectNext(next=False)
+            
+    else:
+        debugInfo = event
 ### Normal ###
 
 ### Insert ###
+def insertKeyboardEvents(event: int):
+    if event == 27:
+        raiseEvent("modeUpdate", "normal")
 ### Insert ###
 
 ### Settings ###
+def helpKeyboardEvents(event: int):
+    if event == 27:
+        raiseEvent("modeUpdate", "normal")
 ### Settings ###
 
 ### Help ###
+def settingsKeyboardEvents(event: int):
+    if event == 27:
+        raiseEvent("modeUpdate", "normal")
 ### Help ###
+
+modeList = {
+    "normal" : Mode(
+        widgets=[
+            Layout(
+                screen=screen,
+                name="normalModeLayout",
+                position=[0, 2],
+                layoutVertical=True,
+                contents=[
+                    Layout(
+                        screen=screen,
+                        name="normalToolbar",
+                        # position=[1, 2],
+                        contents=[
+                            Text(
+                                screen=screen,
+                                text=" "
+                            ),
+                            placeholder,
+                            Text(
+                                screen=screen,
+                                text=" "
+                            ),
+                            Text(
+                                screen=screen,
+                                text=" "
+                            ),
+                        ]
+                    ),
+                    HLine(
+                        screen=screen,
+                        expand=True
+                    )
+                ]
+            )
+        ],
+        keyboardEventHandler=normalKeyboardEvents
+    ),
+    "insert" : Mode(
+        widgets=[],
+        keyboardEventHandler=insertKeyboardEvents
+    ),
+    "settings" : Mode(
+        widgets=[],
+        keyboardEventHandler=settingsKeyboardEvents
+    ),
+    "help" : Mode(
+        widgets=[
+            Layout(
+                screen=screen,
+                name="helpToolbar",
+                position=[0, 2],
+                contents=[
+                    Text(
+                        screen=screen,
+                        text=" "
+                    ),
+                    Button(
+                        screen=screen,
+                        name="prev",
+                        text="<"
+                    ),
+                    Expander(screen=screen),
+                    Text(
+                        screen=screen,
+                        name="sectionName"
+                    ),
+                    Expander(screen=screen),
+                    Button(
+                        screen=screen,
+                        name="next",
+                        text=">"
+                    ),
+                    Text(
+                        screen=screen,
+                        text=" "
+                    )
+                ]
+            ),
+            HLine(
+                screen=screen,
+                position=[0, 3],
+                expand=True
+            )
+        ],
+        keyboardEventHandler=helpKeyboardEvents
+    )
+}
+
+activeMode: Mode = modeList["normal"]
+activeMode.loadMode()
 
 ### Events Reactions ###
 def onModeUpdate(newMode: str | Widget):
+    global activeMode, modeList
+
     if isinstance(newMode, Widget):
         newMode = newMode.name
     for modeButton in mainToolbar.interactibles:
@@ -110,6 +321,11 @@ def onModeUpdate(newMode: str | Widget):
             modeButton.color = modeButton.color | nc.A_REVERSE
         else:
             modeButton.color = modeButton.color & ~(nc.A_REVERSE)
+    
+    activeMode.unloadMode()
+    activeMode = modeList[newMode]
+    activeMode.loadMode()
+
     redrawScreen()
 
 def modeButtonsClickHandler(clickType, clickPosition):
@@ -172,6 +388,7 @@ def fixDecorativeLines():
         screen.addch(p[0], p[1], (" ", " ", " ", "┘", " ", "│", "┐", "┤", " ", "└", "─", "┴", "┌", "├", "┬", "┼")[p[2]])
 
 def redrawScreen() -> None:
+    # global activeMode
     screen.erase()
 
     mainToolbar.draw()
@@ -181,7 +398,7 @@ def redrawScreen() -> None:
         expand=True
     ).draw()
     
-    # CringeGlobals.activeMode.drawFunction()
+    activeMode.drawFunction()
 
     fixDecorativeLines()
 

@@ -77,12 +77,12 @@ class HLine(Widget):
         color: int = 0
     ) -> None:
         
-        if expand:
-            ssize = [screen.getmaxyx()[1] - position[0], 1]
-        else:
-            ssize = [size, 1]
+        super().__init__(screen, name, position, size)
 
-        super().__init__(screen, name, position, ssize)
+        if expand:
+            self.size = [screen.getmaxyx()[1] - self.position[0], 1]
+        else:
+            self.size = [size, 1]
         
         self.color = color
         self.expand = expand
@@ -156,7 +156,7 @@ class Button(InteractibleWidget):
         self,
         screen: nc._CursesWindow,
         name: str,
-        eventToRaise: str,
+        eventToRaise: str = None,
         text: str = "Button",
         position: list[int, int] = None,
         size: list[int, int] = None,
@@ -170,7 +170,7 @@ class Button(InteractibleWidget):
         self.state = False
         self.text = text
         self.color = color
-        self.event = eventToRaise
+        self.event = eventToRaise if eventToRaise else name
 
     def __str__(self) -> str:
         return self.text
@@ -248,9 +248,6 @@ class Layout(Widget):
         for i in range(1,len(self.contents)):
             self.contents[i].position[self.__layout] = self.contents[i-1].position[self.__layout] + self.contents[i-1].size[self.__layout]
             self.contents[i].position[1 - self.__layout] = self.position[1 - self.__layout]
-
-    def changeContents(self):
-        pass
     
     @property
     def interactibles(self) -> list[InteractibleWidget]:
@@ -353,57 +350,6 @@ class Project(InteractibleWidget):
         size = [screen.getmaxyx()[1], screen.getmaxyx()[0] - position[1] - 1]
         super().__init__(screen, name, position, size, True)
 
-        self.toolbar: Layout = Layout(
-            screen=screen,
-            name="instrumentToolbar",
-            position=self.position,
-            maxSize=21,
-            contents=[
-                Expander(
-                    screen=screen,
-                    filler="-"
-                ),
-                Button(
-                    screen=screen,
-                    name="addInstrument",
-                    text=" "
-                ),
-                Text(
-                    screen=screen,
-                    text="--"
-                ),
-                Button(
-                    screen=screen,
-                    name="rmvInstrument",
-                    text=" ",
-                    enabled=False
-                ),
-                Text(
-                    screen=screen,
-                    text="--"
-                ),
-                Button(
-                    screen=screen,
-                    name="uppInstrument",
-                    text=" ",
-                    enabled=False
-                ),
-                Text(
-                    screen=screen,
-                    text="--"
-                ),
-                Button(
-                    screen=screen,
-                    name="dwnInstrument",
-                    text=" ",
-                    enabled=False
-                ),
-                Expander(
-                    screen=screen,
-                    filler="-"
-                )
-            ]
-        )
 
         self.pad: nc._CursesWindow = nc.newpad(21,20)
         self.instrumentList: list[Instrument] = [Instrument(screen=self.pad)]
