@@ -181,6 +181,28 @@ class Text(Widget):
     def draw(self) -> None:
         self.screen.addstr(self.position[1], self.position[0], self.text, nc.color_pair(self.color))
                     
+class LargeText(InteractibleWidget):
+
+    def __init__(
+        self,
+        screen: nc._CursesWindow,
+        name: str,
+        text: list[str],
+        position: list[int, int] = None,
+        size: list[int, int] = None,
+        ) -> None:
+
+        super().__init__(screen, name, position, size, True)
+        
+        self.text = text
+        self.pad = nc.newpad()
+        
+    def draw(self) -> None:
+        pass
+    
+    def clickHandler(self, clickType: int, clickPosition: list[int, int]) -> None:
+        pass
+                    
 class Button(InteractibleWidget):
 
     def __init__(
@@ -263,7 +285,7 @@ class Layout(Widget):
         for w in listOfNonExpanders:
             sizeToFit += w.size[self.__layout]
         maxSize = self.maxSize if self.maxSize else self.screen.getmaxyx()[1 - self.__layout]
-        sizeToFit = maxSize - self.position[self.__layout] - sizeToFit
+        sizeToFit = maxSize - sizeToFit
         
         if sizeToFit < 0:
             raise Exception(f"Can't fit all elements in available real estate {self.name}")
@@ -331,6 +353,9 @@ class Instrument():
         self.visible = visible
         self.selected = False
         self.color = color
+        
+    def __str__(self) -> str:
+        pass
         
     def draw(self) -> None:
         color = nc.color_pair(self.color if self.visible else CRINGE_COLOR_DSBL) | (nc.A_REVERSE if self.selected else 0)
@@ -406,7 +431,7 @@ class InstrumentList(InteractibleWidget):
         self.pad.refresh(
             self.instrumentScrollIndex,
             0,
-            self.position[1] + 1,
+            self.position[1],
             self.position[0],
             self.position[1] + self.size[1],
             self.position[0] + self.size[0]
@@ -417,7 +442,7 @@ class InstrumentList(InteractibleWidget):
         if (relPos[0] >= 0) and (relPos[1] >= 0) and (relPos[0] < self.size[0]) and (relPos[1] < self.size[1]):
             if clickType == nc.BUTTON1_PRESSED:
                 for i, ins in enumerate(self.instrumentList):
-                    if ins.isClicked(clickType, [relPos[0], relPos[1] + self.instrumentScrollIndex - 1]):
+                    if ins.isClicked(clickType, [relPos[0], relPos[1] + self.instrumentScrollIndex]):
                         self.selectee = i
                 self.draw()
                 raiseEvent("instrumentListUpdate", self)
