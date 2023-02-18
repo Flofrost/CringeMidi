@@ -1,6 +1,7 @@
 from random import randint
 import re
 
+### Lookup Tables ###
 freqencyTable = {"C":32.703, "D":36.708, "E":41.203, "F":43.654, "G":48.999, "A":55, "B":61.735}
 noteTable = [
     "C2", "C#2", "D2", "D#2", "E2", "F2", "F#2", "G2", "G#2", "A2", "A#2", "B2",
@@ -11,11 +12,10 @@ noteTable = [
     "S"
 ]
 volumeTable = ["F", "f", "p", "P"]
-
-def generateUID() -> str:
-    return "".join([chr(randint(0x20, 0x7E)) for i in range(16)])
+### Lookup Tables ###
 
     
+### Note Encoding and Decoding ###
 def encodeNote(count: int, note: int) -> str:
     if (note & 0x3f) >= 60: # If the note is silence
         volumeStr = ""
@@ -26,13 +26,17 @@ def encodeNote(count: int, note: int) -> str:
 
     return f"{count}{noteStr}{volumeStr}"
 
-def decodeNote(note: str) -> list[int]:
-    if re.findall("\d+S",note): # is note silence
-        return 
+def decodeNote(noteString: str) -> list[int]:
+    if re.findall("\d+S", noteString): # is note silence
+        return [60] * int(re.findall("\d+", noteString)[0])
     else:
-        components = re.findall("(\d+)([A-G]#?[2-6])([FfpP])", note)
+        components = re.findall("(\d+)([A-G]#?[2-6])([FfpP])", noteString)
         if not components:
             raise Exception("Incorrect note format")
+        count  = components[0][0]
+        note   = components[0][1]
+        volume = components[0][2]
+        return [noteTable.index(note) + (volumeTable.index(volume) << 6)] * int(count)
 
 def encodeNotes(notes: list[int]) -> list[str]:
     index = 1
@@ -52,17 +56,18 @@ def encodeNotes(notes: list[int]) -> list[str]:
     return output
             
 def decodeNotes(notes: list[str]) -> list[int]:
-    ...
+    output = []
+    for note in notes:
+        output.extend(decodeNote(note))
+    return output
+### Note Encoding and Decoding ###
 
 
-def addPos(a: list[int, int], b: list[int, int]) -> list[int, int]:
-    return [a[0] + b[0], a[1] + b[1]]
+### Misc ###
+def generateUID() -> str:
+    return "".join([chr(randint(0x20, 0x7E)) for i in range(16)])
 
 def subPos(a: list[int, int], b: list[int, int]) -> list[int, int]:
     return [a[0] - b[0], a[1] - b[1]]
+### Misc ###
 
-def mulPos(a: list[int, int], b: float) -> list[int, int]:
-    return [a[0] * b, a[1] * b]
-
-def divPos(a: list[int, int], b: float) -> list[int, int]:
-    return [a[0] / b, a[1] / b]
