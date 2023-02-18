@@ -326,7 +326,7 @@ class Instrument():
         self.name = name
         self.position = [0, 0]
         self.size = [20, 2]
-        self.notes = []
+        self.notes: list[int] = []
         self.type = insType
         self.visible = visible
         self.selected = False
