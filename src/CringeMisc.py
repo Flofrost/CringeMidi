@@ -16,7 +16,7 @@ def generateUID() -> str:
     return "".join([chr(randint(0x20, 0x7E)) for i in range(16)])
 
     
-def note2str(count: int, note: int) -> str:
+def encodeNote(count: int, note: int) -> str:
     if (note & 0x3f) >= 60: # If the note is silence
         volumeStr = ""
         noteStr = "S"
@@ -26,6 +26,14 @@ def note2str(count: int, note: int) -> str:
 
     return f"{count}{noteStr}{volumeStr}"
 
+def decodeNote(note: str) -> list[int]:
+    if re.findall("\d+S",note): # is note silence
+        return 
+    else:
+        components = re.findall("(\d+)([A-G]#?[2-6])([FfpP])", note)
+        if not components:
+            raise Exception("Incorrect note format")
+
 def encodeNotes(notes: list[int]) -> list[str]:
     index = 1
     combo = 1
@@ -34,13 +42,13 @@ def encodeNotes(notes: list[int]) -> list[str]:
 
     while index < len(notes):
         if notes[index] != prev:
-            output.append(note2str(combo, prev))
+            output.append(encodeNote(combo, prev))
             combo = 0
             prev = notes[index]
         index += 1
         combo += 1
 
-    output.append(note2str(combo, prev))
+    output.append(encodeNote(combo, prev))
     return output
             
 def decodeNotes(notes: list[str]) -> list[int]:
