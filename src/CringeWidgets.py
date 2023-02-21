@@ -54,7 +54,7 @@ class Expander(Widget):
         self,
         screen: nc._CursesWindow,
         name: str = generateUID(),
-        filler: str = " ",
+        filler: str = "⠀",
         position: list[int, int] = None
     ) -> None:
 
@@ -93,6 +93,7 @@ class HLine(Widget):
     def draw(self):
         if self.expand:
             self.size = [self.screen.getmaxyx()[1] - self.position[0], 1]
+
         for i in range(self.size[0]):
             relPos = self.position[0] + i
             char = chr(self.screen.inch(self.position[1], relPos))
@@ -100,6 +101,8 @@ class HLine(Widget):
                 self.screen.addch(self.position[1], relPos, "┼", nc.color_pair(self.color))
             else:
                 self.screen.addch(self.position[1], relPos, "─", nc.color_pair(self.color))
+
+        posToFix = []
         for i in range(self.size[0]):
             col = self.position[0] + i
             if chr(screen.inch(self.position[1], col)) == "┼":
@@ -112,8 +115,11 @@ class HLine(Widget):
                     index += 4
                 if col < screen.getmaxyx()[1] - 1 and chr(screen.inch(self.position[1], col + 1)) in ("┼", "─"):
                     index += 8
-                self.screen.addch(self.position[1], col, lineComponents[index], self.color)
-                    
+                posToFix.append([self.position[1], col, lineComponents[index]])
+
+        for p in posToFix:
+            self.screen.addch(p[0], p[1], p[2], nc.color_pair(self.color))
+
 class VLine(Widget):
 
     def __init__(
@@ -148,6 +154,7 @@ class VLine(Widget):
             else:
                 self.screen.addch(relPos, self.position[0], "│", nc.color_pair(self.color))
         
+        posToFix = []
         for j in range(self.size[1]):
             row = self.position[1] + j
             if chr(screen.inch(row, self.position[0])) == "┼":
@@ -160,7 +167,10 @@ class VLine(Widget):
                     index += 4
                 if self.position[0] < screen.getmaxyx()[1] - 1 and chr(screen.inch(row, self.position[0] + 1)) in ("┼", "─"):
                     index += 8
-                self.screen.addch(row, self.position[0], lineComponents[index], self.color)
+                posToFix.append([row, self.position[0], lineComponents[index]])
+
+        for p in posToFix:
+            self.screen.addch(p[0], p[1], p[2], nc.color_pair(self.color))
                     
 class Text(Widget):
 
@@ -180,6 +190,10 @@ class Text(Widget):
     
     def draw(self) -> None:
         self.screen.addstr(self.position[1], self.position[0], self.text, nc.color_pair(self.color))
+        
+    def changeText(self, newText: str):
+        self.text = newText
+        self.size = [len(self.text), 1]
                     
 class LargeText(InteractibleWidget):
 
@@ -195,14 +209,49 @@ class LargeText(InteractibleWidget):
         super().__init__(screen, name, position, size, True)
         
         self.text = text
-        self.pad = nc.newpad()
+        self.pad = nc.newpad(self.calcPadLength(), self.size[0])
         
     def draw(self) -> None:
-        pass
+        self.pad.erase()
+        
+        index = 0
+        for text in self.text:
+            linesTaken = len(text) // self.size[0]
+            if linesTaken:
+                for i in range(linesTaken):
+                    self.pad.addnstr(index, 0, text[self.size[0] * i:], self.size[0])
+                    index += 1
+            else:
+                self.pad.addstr(index, 0, text)
+                index += 1
+
+        self.screen.refresh()
+        self.pad.refresh(
+            0, 0,
+            self.position[1], self.position[0],
+            self.position[1] + self.size[1], self.position[0] + self.size[0],
+        )
     
     def clickHandler(self, clickType: int, clickPosition: list[int, int]) -> None:
         pass
                     
+    def calcPadLength(self) -> int:
+        totalLength = 0
+        for text in self.text:
+            totalLength += 1 + (len(text) // self.size[0])
+        if totalLength < self.size[1]:
+            totalLength = self.size[1]
+        return totalLength
+
+    def resize(self, newSize: list[int, int]) -> None:
+        self.size = newSize
+        self.pad.resize(self.calcPadLength(), self.size[0])
+        
+    def changeText(self, newText: list[str]) -> None:
+        self.text = newText
+        self.pad.resize(self.calcPadLength(), self.size[0])
+        self.draw()
+
 class Button(InteractibleWidget):
 
     def __init__(
@@ -302,6 +351,12 @@ class Layout(Widget):
             self.contents[i].position[self.__layout] = self.contents[i-1].position[self.__layout] + self.contents[i-1].size[self.__layout]
             self.contents[i].position[1 - self.__layout] = self.position[1 - self.__layout]
     
+    def getWidget(self, name: str) -> Widget:
+        for w in self.contents:
+            if w.name == name:
+                return w
+        raise Exception(f"No widget with name {name}")
+
     @property
     def interactibles(self) -> list[InteractibleWidget]:
         listOfInteractibles = []

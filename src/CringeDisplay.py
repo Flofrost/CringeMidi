@@ -1,7 +1,9 @@
 import curses as nc
+
 from CringeEvents import *
 import CringeGlobals
 from CringeWidgets import *
+import CringeDocs
 
 ### Mode Manager Class ###
 class Mode():
@@ -242,21 +244,45 @@ def insertPositionner():
 ### Insert ###
 
 ### Settings ###
-def helpKeyboardEvents(event: int):
-    if event == 27:
-       raiseEvent("modeUpdate", "normal")
-        
-def helpPositionner():
-    pass
-### Settings ###
-
-### Help ###
 def settingsKeyboardEvents(event: int):
     if event == 27:
         raiseEvent("modeUpdate", "normal")
 
 def settingsPositionner():
     pass
+### Settings ###
+
+### Help ###
+helpTextBody = LargeText(
+    screen=screen,
+    name="helpTextBody",
+    text=CringeDocs.helpContents[0][1],
+    position=[1, 4],
+    size=[screen.getmaxyx()[1] - 2, screen.getmaxyx()[0] - 7]
+)
+helpTextBody.pageIndex = 0
+
+def helpKeyboardEvents(event: int):
+    if event == 27:
+       raiseEvent("modeUpdate", "normal")
+        
+def helpPositionner():
+    helpTextBody.resize([screen.getmaxyx()[1] - 2, screen.getmaxyx()[0] - 7])
+    
+def onPageChange(next: Widget | str):
+    global helpTextBody, activeMode
+    
+    if isinstance(next, Widget):
+        next = next.name
+        
+    if next == "next":
+        helpTextBody.pageIndex = (helpTextBody.pageIndex + 1) % len(CringeDocs.helpContents)
+    else:
+        helpTextBody.pageIndex = (helpTextBody.pageIndex - 1) % len(CringeDocs.helpContents)
+
+    helpTextBody.changeText(CringeDocs.helpContents[helpTextBody.pageIndex][1])
+    activeMode.getWidget("helpToolbar").getWidget("sectionName").changeText(f"{CringeDocs.helpContents[helpTextBody.pageIndex][0]} {helpTextBody.pageIndex + 1}/{len(CringeDocs.helpContents)}")
+    activeMode.drawFunction()
 ### Help ###
 
 modeList = {
@@ -352,6 +378,9 @@ modeList = {
     "help" : Mode(
         keyboardEventHandler=helpKeyboardEvents,
         widgetPositionner=helpPositionner,
+        eventListeners=[
+            ["changeHelpPage", onPageChange]
+        ],
         widgets=[
             Layout(
                 screen=CringeGlobals.screen,
@@ -360,12 +389,13 @@ modeList = {
                 contents=[
                     Text(
                         screen=CringeGlobals.screen,
-                        text=" "
+                        text="⠀"
                     ),
                     Button(
                         screen=CringeGlobals.screen,
                         name="prev",
-                        text="<"
+                        eventToRaise="changeHelpPage",
+                        text=" "
                     ),
                     Expander(screen=screen),
                     Text(
@@ -376,19 +406,21 @@ modeList = {
                     Button(
                         screen=CringeGlobals.screen,
                         name="next",
-                        text=">"
+                        eventToRaise="changeHelpPage",
+                        text=" "
                     ),
                     Text(
                         screen=CringeGlobals.screen,
-                        text=" "
-                    )
+                        text="⠀"
+                    ),
                 ]
             ),
             HLine(
                 screen=CringeGlobals.screen,
                 position=[0, 3],
                 expand=True
-            )
+            ),
+            helpTextBody
         ],
     )
 }
@@ -412,6 +444,7 @@ def onModeUpdate(newMode: str | Widget):
     activeMode = modeList[newMode]
     activeMode.loadMode()
 
+    raiseEvent("screenResized")
     redrawScreen()
 
 def onScreenResized():
