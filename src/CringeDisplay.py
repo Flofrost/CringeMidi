@@ -91,7 +91,7 @@ mainToolbar = Layout(
             size=2
         ),
         Expander(
-            screen=screen
+            screen=CringeGlobals.screen
         ),
         VLine(
             screen=CringeGlobals.screen,
@@ -133,16 +133,19 @@ mainToolbar = Layout(
     ]
 )
 
-instrumentList = InstrumentList(
+project = Project(
     screen=CringeGlobals.screen,
     name="instrumentList",
-    position=[CringeGlobals.screen.getmaxyx()[1] - 20, 4]
+    position=[screen.getmaxyx()[1] - 20, 4]
 )
 
 statusBar = StatusBar(
     screen=CringeGlobals.screen,
     color=CRINGE_COLOR_PRPL
 )
+
+rewindList = []
+rewindIndex = 0
 ### Global ###
 
 ### Normal ###
@@ -184,7 +187,7 @@ dwnInstrumentBtn = Button(
                 )
 
 def normalKeyboardEvents(event: int):
-    global instrumentList
+    global project
 
     if  event == ord("i"):
         raiseEvent("modeUpdate", "insert")
@@ -211,27 +214,36 @@ def normalKeyboardEvents(event: int):
     elif event == ord("R"):
         raiseEvent("changeInstrument", "name")
     elif event == nc.KEY_DOWN:
-        instrumentList.selectNext()
+        project.selectNext()
     elif event == nc.KEY_UP:
-        instrumentList.selectNext(False)
+        project.selectNext(False)
     else:
         CringeGlobals.debugInfo = event
 
 def normalPositionner():
-    instrumentList.position = [CringeGlobals.screen.getmaxyx()[1] - 20, 5]
-    modeList["normal"].getWidget("separatorLine").position = [CringeGlobals.screen.getmaxyx()[1] - 21, 3]
-    modeList["normal"].getWidget("instrumentListToolbar").position = [CringeGlobals.screen.getmaxyx()[1] - 20, 4]
+    project.position = [screen.getmaxyx()[1] - 20, 5]
+    modeList["normal"].getWidget("separatorLine").position = [screen.getmaxyx()[1] - 21, 3]
+    modeList["normal"].getWidget("instrumentListToolbar").position = [screen.getmaxyx()[1] - 20, 4]
 
-def onInstrumentListUpdate(instrumentList: InstrumentList):
+def onInstrumentListUpdate(instrumentList: Project):
     global rmvInstrumentBtn, uppInstrumentBtn, dwnInstrumentBtn
 
-    rmvInstrumentBtn.enabled = True if len(instrumentList.instrumentList) > 1 else False
-    uppInstrumentBtn.enabled = True if instrumentList.selectee > 0 else False
-    dwnInstrumentBtn.enabled = True if instrumentList.selectee < len(instrumentList.instrumentList) - 1 else False
+    rmvInstrumentBtn.enabled = len(instrumentList.instrumentList) > 1
+    uppInstrumentBtn.enabled = instrumentList.selectee > 0 
+    dwnInstrumentBtn.enabled = instrumentList.selectee < len(instrumentList.instrumentList) - 1 
     
     rmvInstrumentBtn.draw()
     uppInstrumentBtn.draw()
     dwnInstrumentBtn.draw()
+
+def undoRedoBtnsUpdate(*_):
+    global rewindIndex, rewindList
+    
+    undoBtn.enabled = rewindIndex + 1 < len(rewindList)
+    undoBtn.draw()
+    
+    redoBtn.enabled = rewindIndex > 0
+    redoBtn.draw()
 ### Normal ###
 
 ### Insert ###
@@ -254,7 +266,7 @@ def settingsPositionner():
 
 ### Help ###
 helpTextBody = LargeText(
-    screen=screen,
+    screen=CringeGlobals.screen,
     name="helpTextBody",
     text=CringeDocs.helpContents[0][1],
     position=[1, 4],
@@ -291,11 +303,14 @@ modeList = {
         widgetPositionner=normalPositionner,
         eventListeners=[
             ["instrumentListUpdate", onInstrumentListUpdate],
-            ["addInstrument", instrumentList.addInstrument],
-            ["rmvInstrument", instrumentList.rmvInstrument],
-            ["uppInstrument", instrumentList.uppInstrument],
-            ["dwnInstrument", instrumentList.dwnInstrument],
-            ["changeInstrument", instrumentList.changeInstrument]
+            ["addInstrument", project.addInstrument],
+            ["rmvInstrument", project.rmvInstrument],
+            ["uppInstrument", project.uppInstrument],
+            ["dwnInstrument", project.dwnInstrument],
+            ["changeInstrument", project.changeInstrument],
+            ["undo", undoRedoBtnsUpdate],
+            ["redo", undoRedoBtnsUpdate],
+            ["saveState", undoRedoBtnsUpdate],
         ],
         widgets=[
             Layout(
@@ -359,10 +374,10 @@ modeList = {
             VLine(
                 screen=CringeGlobals.screen,
                 name="separatorLine",
-                position=[CringeGlobals.screen.getmaxyx()[1] - 20 - 1, 3],
+                position=[screen.getmaxyx()[1] - 20 - 1, 3],
                 expand=True
             ),
-            instrumentList,
+            project,
         ]
     ),
     "insert" : Mode(
@@ -397,12 +412,12 @@ modeList = {
                         eventToRaise="changeHelpPage",
                         text=" "
                     ),
-                    Expander(screen=screen),
+                    Expander(screen=CringeGlobals.screen),
                     Text(
                         screen=CringeGlobals.screen,
                         name="sectionName"
                     ),
-                    Expander(screen=screen),
+                    Expander(screen=CringeGlobals.screen),
                     Button(
                         screen=CringeGlobals.screen,
                         name="next",
@@ -455,22 +470,50 @@ def onScreenResized():
 def modeButtonsClickHandler(clickType, clickPosition):
     for button in mainToolbar.interactibles:
         button.clickHandler(clickType, clickPosition)
+
+def onSaveState():
+    global rewindIndex, rewindList
+
+    if rewindIndex:
+        rewindList = rewindList[rewindIndex:]
+        rewindIndex = 0
+    rewindList.insert(0, project.save())
+    
+    CringeGlobals.debugInfo = f"{rewindList.__sizeof__()}, {project.__sizeof__()}"
+
+def onUndo(*_):
+    global rewindIndex, rewindList
+
+    if rewindIndex + 1 < len(rewindList):
+        rewindIndex += 1
+        project.load(rewindList[rewindIndex])
+        redrawScreen()
+
+def onRedo(*_):
+    global rewindIndex, rewindList
+    
+    if rewindIndex > 0:
+        rewindIndex -= 1
+        project.load(rewindList[rewindIndex])
+        redrawScreen()
 ### Events Reactions ###
 
 ### Subscribtions ###
 subscribe("modeUpdate", onModeUpdate)
 subscribe("mouseEvent", modeButtonsClickHandler)
 subscribe("screenResized", onScreenResized)
+subscribe("saveState", onSaveState)
+subscribe("undo", onUndo)
+subscribe("redo", onRedo)
 ### Subscribtions ###
 
 ### Functions ###
 def redrawScreen() -> None:
-    # global activeMode
     screen.erase()
 
     mainToolbar.draw()
     HLine(
-        CringeGlobals.screen,
+        screen,
         position=[0, 1],
         expand=True
     ).draw()

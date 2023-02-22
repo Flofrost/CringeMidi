@@ -13,6 +13,7 @@ try:
     CringeGlobals.screen.timeout(20)
     
     CringeEvents.raiseEvent("modeUpdate", "normal")
+    CringeEvents.raiseEvent("saveState")
 
     screenSize = CringeDisplay.screenResizeCheckerandUpdater()
     

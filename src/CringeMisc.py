@@ -39,6 +39,8 @@ def decodeNote(noteString: str) -> list[int]:
         return [noteTable.index(note) + (volumeTable.index(volume) << 6)] * int(count)
 
 def encodeNotes(notes: list[int]) -> list[str]:
+    if not notes: return []
+
     index = 1
     combo = 1
     prev = notes[0]

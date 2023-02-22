@@ -3,6 +3,7 @@ import curses as nc
 from abc import ABCMeta, abstractmethod
 from random import randint
 from CringeEvents import raiseEvent
+import json
 
 from CringeGlobals import *
 from CringeMisc import *
@@ -396,14 +397,15 @@ class Instrument():
         name: str = "New Instrument",
         insType: str = "sine",
         visible: bool = True,
-        color: int = 10
+        color: int = 10,
+        notes: list[int] = None
     ) -> None:
 
         self.screen = screen
         self.name = name
         self.position = [0, 0]
         self.size = [20, 2]
-        self.notes: list[int] = []
+        self.notes: list[int] = notes if notes else [0,0,0,0,5,5,5,5,5,5,5,60,60,60,60,60,10,10,10,10,10,10,10,10]
         self.type = insType
         self.visible = visible
         self.selected = False
@@ -439,19 +441,41 @@ class Instrument():
     def changeType(self):
         insTypeList = CRINGE_ISTR_TYPES
         self.type = insTypeList[(insTypeList.index(self.type) + 1) % len(insTypeList)]
+        raiseEvent("saveState")
 
     def changeColor(self):
         colorList = CRINGE_COLOR_ISTR
         self.color = colorList[(colorList.index(self.color) + 1) % len(colorList)]
+        raiseEvent("saveState")
         
     def changeName(self):
         newName = getInput(prompt="New Name : ", limit=18, attributes=nc.color_pair(self.color) | nc.A_REVERSE)
-        if newName: self.name = newName
+        if newName:
+            self.name = newName
+            raiseEvent("saveState")
         
     def toggleVisible(self):
         self.visible = not self.visible
+        raiseEvent("saveState")
 
-class InstrumentList(InteractibleWidget):
+    def encode(self) -> dict:
+        return {
+            "name" : self.name,
+            "type" : self.type,
+            "visible" : self.visible,
+            "color" : self.color,
+            "notes" : ",".join(encodeNotes(self.notes))
+        }
+
+    def load(self, data: dict) -> Instrument:
+        self.name = data["name"]
+        self.type = data["type"]
+        self.visible = data["visible"]
+        self.color = data["color"]
+        self.notes = decodeNotes(data["notes"].split(","))
+        return self
+
+class Project(InteractibleWidget):
     
     def __init__(
         self,
@@ -468,6 +492,9 @@ class InstrumentList(InteractibleWidget):
         self.instrumentList: list[Instrument] = [Instrument(screen=self.pad)]
         self.instrumentScrollIndex: int = 0
         self.selectee: int = 0
+        
+    def __sizeof__(self) -> int:
+        return super().__sizeof__() + sum([ins.__sizeof__() for ins in self.instrumentList])
         
     def updateWidgetsPosition(self):
         self.size = [self.screen.getmaxyx()[1], self.screen.getmaxyx()[0] - self.position[1] - 1]
@@ -518,6 +545,7 @@ class InstrumentList(InteractibleWidget):
             self.pad.resize(len(self.instrumentList) * 2 + 7, 20)
         self.draw()
         raiseEvent("instrumentListUpdate", self)
+        raiseEvent("saveState")
     
     def rmvInstrument(self, *_):
         if len(self.instrumentList) > 1:
@@ -527,6 +555,7 @@ class InstrumentList(InteractibleWidget):
                 self.pad.resize(len(self.instrumentList) * 2 + 7, 20)
             self.draw()
         raiseEvent("instrumentListUpdate", self)
+        raiseEvent("saveState")
             
     def selectNext(self, next=True):
         self.selectee = (self.selectee + (1 if next else -1)) % len(self.instrumentList)
@@ -545,6 +574,7 @@ class InstrumentList(InteractibleWidget):
             self.instrumentList.insert(self.selectee, ins)
             self.draw()
         raiseEvent("instrumentListUpdate", self)
+        raiseEvent("saveState")
             
     def dwnInstrument(self, *_):
         if self.selectee < len(self.instrumentList) - 1:
@@ -553,6 +583,7 @@ class InstrumentList(InteractibleWidget):
             self.instrumentList.insert(self.selectee, ins)
             self.draw()
         raiseEvent("instrumentListUpdate", self)
+        raiseEvent("saveState")
         
     def changeInstrument(self, thingToChange: str):
         if   thingToChange == "visible":
@@ -564,6 +595,24 @@ class InstrumentList(InteractibleWidget):
         elif thingToChange == "color":
             self.selectedInstrument.changeColor()
         self.draw()
+
+    def save(self, pretty=False) -> str:
+        instList = [i.encode() for i in self.instrumentList]
+
+        d = {
+            "selectee" : self.selectee,
+            "instrumentList" : instList
+        }
+
+        return json.dumps(d, indent=4 if pretty else None)
+
+    def load(self, data: str):
+        d = json.loads(data)
+
+        self.selectee = d["selectee"]
+
+        self.pad.resize(len(d["instrumentList"]) * 2 + 3, 20)
+        self.instrumentList = [Instrument(screen=self.pad).load(ins) for ins in d["instrumentList"]]
 
     @property
     def selectedInstrument(self) -> Instrument:
