@@ -17,15 +17,6 @@ CRINGE_ISTR_TYPES = [
     "noise"
 ]
 
-kbKeys = {
-    "CTRL+LEFT": 546,
-    "CTRL+RIGHT" : 561,
-    "CTRL+UP" : 567,
-    "CTRL+DOWN" : 526,
-    "SHIFT+UP" : 337,
-    "SHIFT+DOWN" : 336,
-}
-
 debugInfo = ""
 
 def initCringeMidi() -> nc._CursesWindow:

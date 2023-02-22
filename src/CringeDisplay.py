@@ -5,6 +5,15 @@ import CringeGlobals
 from CringeWidgets import *
 import CringeDocs
 
+kbKeys = {
+    "CTRL+LEFT": 546,
+    "CTRL+RIGHT" : 561,
+    "CTRL+UP" : 567,
+    "CTRL+DOWN" : 526,
+    "SHIFT+UP" : 337,
+    "SHIFT+DOWN" : 336,
+}
+
 ### Mode Manager Class ###
 class Mode():
     
@@ -191,6 +200,8 @@ def normalKeyboardEvents(event: int):
 
     if  event == ord("i"):
         raiseEvent("modeUpdate", "insert")
+    elif event == ord("H"):
+        raiseEvent("modeUpdate", "help")
 
     elif event == ord("u"):
         raiseEvent("undo")
@@ -201,9 +212,9 @@ def normalKeyboardEvents(event: int):
         raiseEvent("addInstrument")
     elif event == ord("D"):
         raiseEvent("rmvInstrument")
-    elif event == ord("J"):
+    elif event == ord("J") or event == kbKeys["SHIFT+DOWN"]:
         raiseEvent("dwnInstrument")
-    elif event == ord("K"):
+    elif event == ord("K") or event == kbKeys["SHIFT+UP"]:
         raiseEvent("uppInstrument")
     elif event == ord("C"):
         raiseEvent("changeInstrument", "color")
@@ -213,9 +224,9 @@ def normalKeyboardEvents(event: int):
         raiseEvent("changeInstrument", "type")
     elif event == ord("R"):
         raiseEvent("changeInstrument", "name")
-    elif event == nc.KEY_DOWN:
+    elif event == ord("j") or event == nc.KEY_DOWN:
         project.selectNext()
-    elif event == nc.KEY_UP:
+    elif event == ord("k") or event == nc.KEY_UP:
         project.selectNext(False)
     else:
         CringeGlobals.debugInfo = event
@@ -274,15 +285,26 @@ helpTextBody = LargeText(
 )
 helpTextBody.pageIndex = 0
 
+helpHeader = Text(
+    screen=CringeGlobals.screen,
+    name="sectionName"
+)
+helpHeader.changeText(f"{CringeDocs.helpContents[helpTextBody.pageIndex][0]} {helpTextBody.pageIndex + 1}/{len(CringeDocs.helpContents)}")
+
 def helpKeyboardEvents(event: int):
     if event == 27:
        raiseEvent("modeUpdate", "normal")
+       
+    elif event == nc.KEY_LEFT:
+        raiseEvent("changeHelpPage", "prev")
+    elif event == nc.KEY_RIGHT:
+        raiseEvent("changeHelpPage", "next")
         
 def helpPositionner():
     helpTextBody.resize([screen.getmaxyx()[1] - 2, screen.getmaxyx()[0] - 7])
     
 def onPageChange(next: Widget | str):
-    global helpTextBody, activeMode
+    global helpTextBody, helpHeader, activeMode
     
     if isinstance(next, Widget):
         next = next.name
@@ -293,7 +315,7 @@ def onPageChange(next: Widget | str):
         helpTextBody.pageIndex = (helpTextBody.pageIndex - 1) % len(CringeDocs.helpContents)
 
     helpTextBody.changeText(CringeDocs.helpContents[helpTextBody.pageIndex][1])
-    activeMode.getWidget("helpToolbar").getWidget("sectionName").changeText(f"{CringeDocs.helpContents[helpTextBody.pageIndex][0]} {helpTextBody.pageIndex + 1}/{len(CringeDocs.helpContents)}")
+    helpHeader.changeText(f"{CringeDocs.helpContents[helpTextBody.pageIndex][0]} {helpTextBody.pageIndex + 1}/{len(CringeDocs.helpContents)}")
     activeMode.drawFunction()
 ### Help ###
 
@@ -413,10 +435,7 @@ modeList = {
                         text=" "
                     ),
                     Expander(screen=CringeGlobals.screen),
-                    Text(
-                        screen=CringeGlobals.screen,
-                        name="sectionName"
-                    ),
+                    helpHeader,
                     Expander(screen=CringeGlobals.screen),
                     Button(
                         screen=CringeGlobals.screen,

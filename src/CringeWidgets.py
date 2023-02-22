@@ -211,6 +211,7 @@ class LargeText(InteractibleWidget):
         
         self.text = text
         self.pad = nc.newpad(self.calcPadLength(), self.size[0])
+        self.scrollIndex = 0
         
     def draw(self) -> None:
         self.pad.erase()
@@ -219,7 +220,7 @@ class LargeText(InteractibleWidget):
         for text in self.text:
             linesTaken = len(text) // self.size[0]
             if linesTaken:
-                for i in range(linesTaken):
+                for i in range(linesTaken + 1):
                     self.pad.addnstr(index, 0, text[self.size[0] * i:], self.size[0])
                     index += 1
             else:
@@ -228,13 +229,22 @@ class LargeText(InteractibleWidget):
 
         self.screen.refresh()
         self.pad.refresh(
-            0, 0,
+            self.scrollIndex, 0,
             self.position[1], self.position[0],
             self.position[1] + self.size[1], self.position[0] + self.size[0],
         )
     
     def clickHandler(self, clickType: int, clickPosition: list[int, int]) -> None:
-        pass
+        relPos = subPos(clickPosition, self.position)
+        if (relPos[0] >= 0) and (relPos[1] >= 0) and (relPos[0] < self.size[0]) and (relPos[1] < self.size[1]):
+            if clickType == nc.BUTTON5_PRESSED:
+                if self.scrollIndex < self.pad.getmaxyx()[0] - self.size[1]:
+                    self.scrollIndex += 1
+                self.draw()
+            elif clickType == nc.BUTTON4_PRESSED:
+                if self.scrollIndex > 0:
+                    self.scrollIndex -= 1
+                self.draw()
                     
     def calcPadLength(self) -> int:
         totalLength = 0
