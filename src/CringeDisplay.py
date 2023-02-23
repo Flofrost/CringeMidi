@@ -221,47 +221,61 @@ def normalKeyboardEvents(event: str):
     preserveCombo = False
     command = [""]
 
-    if  event == "i":
+    if  event == "i": # Insert Mode
         raiseEvent("modeUpdate", "insert")
-    elif event == "H":
+    elif event == "H": # Help Mode
         raiseEvent("modeUpdate", "help")
 
-    elif regexTest(r"(\d+)?u$", CringeGlobals.commandCombo + event, command):
+    elif regexTest(r"^(\d+)?u$", CringeGlobals.commandCombo + event, command): # Undo
         count: str = command[0][0]
         count = max(int(count), 1) if count.isnumeric() else 1
         for i in range(count):
             raiseEvent("undo")
-    elif regexTest(r"(\d+)?r$", CringeGlobals.commandCombo + event, command):
+    elif regexTest(r"^(\d+)?r$", CringeGlobals.commandCombo + event, command): # Redo
         count: str = command[0][0]
         count = max(int(count), 1) if count.isnumeric() else 1
         for i in range(count):
             raiseEvent("redo")
 
-    elif event in ("J", "SHIFT+↓"):
-        raiseEvent("dwnInstrument")
-    elif event in ("K", "SHIFT+↑"):
-        raiseEvent("uppInstrument")
-    elif event in ("j", "↓"):
-        project.selectNext()
-    elif event in ("k", "↑"):
-        project.selectNext(False)
-    elif re.findall(r"ma$", CringeGlobals.commandCombo + event):
-        raiseEvent("addInstrument")
-    elif re.findall(r"md$", CringeGlobals.commandCombo + event):
-        raiseEvent("rmvInstrument")
+    elif regexTest(r"^(\d+)?(?:j|↓)$", CringeGlobals.commandCombo + event, command): # Select Next Intrument
+        count: str = command[0][0]
+        count = max(int(count), 1) if count.isnumeric() else 1
+        for i in range(count):
+            project.selectNext()
+    elif regexTest(r"^(\d+)?(?:k|↑)$", CringeGlobals.commandCombo + event, command): # Select Next Intrument
+        count: str = command[0][0]
+        count = max(int(count), 1) if count.isnumeric() else 1
+        for i in range(count):
+            project.selectNext(False)
+    elif regexTest(r"^(\d+)?(?:J|SHIFT\+↓)$", CringeGlobals.commandCombo + event, command): # Move Instrument Down
+        count: str = command[0][0]
+        count = max(int(count), 1) if count.isnumeric() else 1
+        for i in range(count):
+            raiseEvent("dwnInstrument")
+    elif regexTest(r"^(\d+)?(?:K|SHIFT\+↑)$", CringeGlobals.commandCombo + event, command): # Move Instrument Up
+        count: str = command[0][0]
+        count = max(int(count), 1) if count.isnumeric() else 1
+        for i in range(count):
+            raiseEvent("uppInstrument")
+    elif regexTest(r"^(\d+)?ma$", CringeGlobals.commandCombo + event, command): # Add Instrument
+        count: str = command[0][0]
+        count = max(int(count), 1) if count.isnumeric() else 1
+        for i in range(count):
+            raiseEvent("addInstrument")
+    elif regexTest(r"^(\d+)?md$", CringeGlobals.commandCombo + event, command): # Remove Instrument
+        count: str = command[0][0]
+        count = max(int(count), 1) if count.isnumeric() else 1
+        for i in range(count):
+            raiseEvent("rmvInstrument")
         
-    # elif event == ord("m"):
-    #     CringeGlobals.commandCombo = "m"
-    # # elif event == ord("C"):
-    # #     raiseEvent("changeInstrument", "color")
-    # # elif event == ord("V"):
-    # #     raiseEvent("changeInstrument", "visible")
-    # # elif event == ord("T"):
-    # #     raiseEvent("changeInstrument", "type")
-    # # elif event == ord("R"):
-    # #     raiseEvent("changeInstrument", "name")
-    # else:
-        # CringeGlobals.debugInfo = event
+    elif re.findall(r"^mc$", CringeGlobals.commandCombo + event): # Change Instrument Color
+        raiseEvent("changeInstrument", "color")
+    elif re.findall(r"^mv$", CringeGlobals.commandCombo + event): # Toggle Instrument Visibility
+        raiseEvent("changeInstrument", "visible")
+    elif re.findall(r"^mt$", CringeGlobals.commandCombo + event): # Change Instrument Type
+        raiseEvent("changeInstrument", "type")
+    elif re.findall(r"^mr$", CringeGlobals.commandCombo + event): # Change Instrument Name
+        raiseEvent("changeInstrument", "name")
         
     elif event == "Esc":
         CringeGlobals.commandCombo = ""

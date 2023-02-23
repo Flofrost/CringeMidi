@@ -500,7 +500,7 @@ class Project(InteractibleWidget):
 
         self.pad: nc._CursesWindow = nc.newpad(21,20)
         self.instrumentList: list[Instrument] = [Instrument(screen=self.pad)]
-        self.instrumentScrollIndex: int = 0
+        self.scrollIndex: int = 0
         self.selectee: int = 0
         
     def __sizeof__(self) -> int:
@@ -521,7 +521,7 @@ class Project(InteractibleWidget):
 
         self.screen.refresh()
         self.pad.refresh(
-            self.instrumentScrollIndex,
+            self.scrollIndex,
             0,
             self.position[1],
             self.position[0],
@@ -534,18 +534,18 @@ class Project(InteractibleWidget):
         if (relPos[0] >= 0) and (relPos[1] >= 0) and (relPos[0] < self.size[0]) and (relPos[1] < self.size[1]):
             if clickType == nc.BUTTON1_PRESSED:
                 for i, ins in enumerate(self.instrumentList):
-                    if ins.isClicked(clickType, [relPos[0], relPos[1] + self.instrumentScrollIndex]):
+                    if ins.isClicked(clickType, [relPos[0], relPos[1] + self.scrollIndex]):
                         self.selectee = i
                 self.draw()
                 raiseEvent("instrumentListUpdate", self)
             elif clickType == nc.BUTTON5_PRESSED:
-                if self.instrumentScrollIndex < self.pad.getmaxyx()[0] - self.size[1]:
-                    self.instrumentScrollIndex += 1
+                if self.scrollIndex < self.pad.getmaxyx()[0] - self.size[1]:
+                    self.scrollIndex += 1
                 self.draw()
                 raiseEvent("instrumentListUpdate", self)
             elif clickType == nc.BUTTON4_PRESSED:
-                if self.instrumentScrollIndex > 0:
-                    self.instrumentScrollIndex -= 1
+                if self.scrollIndex > 0:
+                    self.scrollIndex -= 1
                 self.draw()
                 raiseEvent("instrumentListUpdate", self)
             
@@ -563,6 +563,8 @@ class Project(InteractibleWidget):
             self.selectee = self.selectee % len(self.instrumentList)
             if (self.pad.getmaxyx()[0] // 2) - len(self.instrumentList) > 6:
                 self.pad.resize(len(self.instrumentList) * 2 + 7, 20)
+                if self.scrollIndex > self.pad.getmaxyx()[0] - self.size[1] - 1:
+                    self.scrollIndex = max(self.pad.getmaxyx()[0] - self.size[1], 0)
             self.draw()
         raiseEvent("instrumentListUpdate", self)
         raiseEvent("saveState")
@@ -570,10 +572,10 @@ class Project(InteractibleWidget):
     def selectNext(self, next=True):
         self.selectee = (self.selectee + (1 if next else -1)) % len(self.instrumentList)
 
-        if self.selectee * 2 < self.instrumentScrollIndex:
-            self.instrumentScrollIndex = self.selectee * 2
-        elif self.selectee * 2 > self.instrumentScrollIndex + self.size[1] - 3:
-            self.instrumentScrollIndex = self.selectee * 2 - self.size[1] + 3
+        if self.selectee * 2 < self.scrollIndex:
+            self.scrollIndex = self.selectee * 2
+        elif self.selectee * 2 > self.scrollIndex + self.size[1] - 3:
+            self.scrollIndex = self.selectee * 2 - self.size[1] + 3
 
         self.draw()
         
@@ -611,6 +613,7 @@ class Project(InteractibleWidget):
 
         d = {
             "selectee" : self.selectee,
+            "scrollIndex" : self.scrollIndex,
             "instrumentList" : instList
         }
 
@@ -620,6 +623,7 @@ class Project(InteractibleWidget):
         d = json.loads(data)
 
         self.selectee = d["selectee"]
+        self.scrollIndex = d["scrollIndex"]
 
         self.pad.resize(len(d["instrumentList"]) * 2 + 3, 20)
         self.instrumentList = [Instrument(screen=self.pad).load(ins) for ins in d["instrumentList"]]

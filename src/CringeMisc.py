@@ -66,7 +66,7 @@ def decodeNotes(notes: list[str]) -> list[int]:
 
 
 ### Misc ###
-def regexTest(pattern: str, s: str, outputList: list[str]) -> bool:
+def regexTest(pattern: str, s: str, outputList: list[str] = None) -> bool:
     r = re.findall(pattern, s)
     if r:
         outputList[0] = r
