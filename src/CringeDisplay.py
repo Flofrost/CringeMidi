@@ -1,4 +1,6 @@
 import curses as nc
+import curses.ascii as ac
+import re
 
 from CringeEvents import *
 import CringeGlobals
@@ -6,12 +8,21 @@ from CringeWidgets import *
 import CringeDocs
 
 kbKeys = {
-    "CTRL+LEFT": 546,
-    "CTRL+RIGHT" : 561,
-    "CTRL+UP" : 567,
-    "CTRL+DOWN" : 526,
-    "SHIFT+UP" : 337,
-    "SHIFT+DOWN" : 336,
+    nc.KEY_LEFT : "←",
+    nc.KEY_RIGHT : "→",
+    nc.KEY_UP : "↑",
+    nc.KEY_DOWN : "↓",
+    546 : "CTRL+←",
+    561 : "CTRL+→",
+    567 : "CTRL+↑",
+    526 : "CTRL+↓",
+    337 : "SHIFT+↑",
+    336 : "SHIFT+↓",
+    402 : "SHIFT+→",
+    393 : "SHIFT+←",
+    
+    10 : "Return",
+    27 : "Esc",
 }
 
 ### Mode Manager Class ###
@@ -31,13 +42,13 @@ class Mode():
         self.listeners = eventListeners if eventListeners else []
 
     def loadMode(self):
-        subscribe("keyboardEvent", self.keyboardEventsHandler)
+        subscribe("keyboardEvent", self.handleKeyboardEvents)
         subscribe("mouseEvent", self.handleMouseEvents)
         for listerner in self.listeners:
             subscribe(listerner[0], listerner[1])
         
     def unloadMode(self):
-        unsubscribe("keyboardEvent", self.keyboardEventsHandler)
+        unsubscribe("keyboardEvent", self.handleKeyboardEvents)
         unsubscribe("mouseEvent", self.handleMouseEvents)
         for listerner in self.listeners:
             unsubscribe(listerner[0], listerner[1])
@@ -46,6 +57,15 @@ class Mode():
         for w in self.widgets:
             w.draw()
     
+    def handleKeyboardEvents(self, event: int) -> None:
+        global kbKeys
+        if ac.isprint(event):
+            self.keyboardEventsHandler(chr(event))
+        elif event in kbKeys:
+            self.keyboardEventsHandler(kbKeys[event])
+        else:
+            CringeGlobals.debugInfo = event
+
     def handleMouseEvents(self, event: int, eventPosition: list[int, int]) -> None:
         for w in self.interactibles:
             w.clickHandler(event, eventPosition)
@@ -82,7 +102,7 @@ mainToolbar = Layout(
             name="normal",
             eventToRaise="modeUpdate",
             text="󱣱 Normal",
-            color=nc.color_pair(CRINGE_COLOR_BLUE)
+            color=nc.color_pair(CringeGlobals.CRINGE_COLOR_BLUE)
         ),
         VLine(
             screen=CringeGlobals.screen,
@@ -93,7 +113,7 @@ mainToolbar = Layout(
             name="insert",
             eventToRaise="modeUpdate",
             text=" Insert",
-            color=nc.color_pair(CRINGE_COLOR_BLUE)
+            color=nc.color_pair(CringeGlobals.CRINGE_COLOR_BLUE)
         ),
         VLine(
             screen=CringeGlobals.screen,
@@ -111,7 +131,7 @@ mainToolbar = Layout(
             name="settings",
             eventToRaise="modeUpdate",
             text=" Settings",
-            color=nc.color_pair(CRINGE_COLOR_BLUE)
+            color=nc.color_pair(CringeGlobals.CRINGE_COLOR_BLUE)
         ),
         VLine(
             screen=CringeGlobals.screen,
@@ -122,7 +142,7 @@ mainToolbar = Layout(
             name="help",
             eventToRaise="modeUpdate",
             text=" Help",
-            color=nc.color_pair(CRINGE_COLOR_BLUE)
+            color=nc.color_pair(CringeGlobals.CRINGE_COLOR_BLUE)
         ),
         VLine(
             screen=CringeGlobals.screen,
@@ -133,7 +153,7 @@ mainToolbar = Layout(
             name="exit",
             eventToRaise="exit",
             text=" Exit",
-            color=nc.color_pair(CRINGE_COLOR_BLUE)
+            color=nc.color_pair(CringeGlobals.CRINGE_COLOR_BLUE)
         ),
         VLine(
             screen=CringeGlobals.screen,
@@ -145,12 +165,12 @@ mainToolbar = Layout(
 project = Project(
     screen=CringeGlobals.screen,
     name="instrumentList",
-    position=[screen.getmaxyx()[1] - 20, 4]
+    position=[CringeGlobals.screen.getmaxyx()[1] - 20, 4]
 )
 
 statusBar = StatusBar(
     screen=CringeGlobals.screen,
-    color=CRINGE_COLOR_PRPL
+    color=CringeGlobals.CRINGE_COLOR_PRPL
 )
 
 rewindList = []
@@ -195,46 +215,68 @@ dwnInstrumentBtn = Button(
                     enabled=False
                 )
 
-def normalKeyboardEvents(event: int):
+def normalKeyboardEvents(event: str):
     global project
 
-    if  event == ord("i"):
+    preserveCombo = False
+    command = [""]
+
+    if  event == "i":
         raiseEvent("modeUpdate", "insert")
-    elif event == ord("H"):
+    elif event == "H":
         raiseEvent("modeUpdate", "help")
 
-    elif event == ord("u"):
-        raiseEvent("undo")
-    elif event == ord("r"):
-        raiseEvent("redo")
+    elif regexTest(r"(\d+)?u$", CringeGlobals.commandCombo + event, command):
+        count: str = command[0][0]
+        count = max(int(count), 1) if count.isnumeric() else 1
+        for i in range(count):
+            raiseEvent("undo")
+    elif regexTest(r"(\d+)?r$", CringeGlobals.commandCombo + event, command):
+        count: str = command[0][0]
+        count = max(int(count), 1) if count.isnumeric() else 1
+        for i in range(count):
+            raiseEvent("redo")
 
-    elif event == ord("N"):
-        raiseEvent("addInstrument")
-    elif event == ord("D"):
-        raiseEvent("rmvInstrument")
-    elif event == ord("J") or event == kbKeys["SHIFT+DOWN"]:
+    elif event in ("J", "SHIFT+↓"):
         raiseEvent("dwnInstrument")
-    elif event == ord("K") or event == kbKeys["SHIFT+UP"]:
+    elif event in ("K", "SHIFT+↑"):
         raiseEvent("uppInstrument")
-    elif event == ord("C"):
-        raiseEvent("changeInstrument", "color")
-    elif event == ord("V"):
-        raiseEvent("changeInstrument", "visible")
-    elif event == ord("T"):
-        raiseEvent("changeInstrument", "type")
-    elif event == ord("R"):
-        raiseEvent("changeInstrument", "name")
-    elif event == ord("j") or event == nc.KEY_DOWN:
+    elif event in ("j", "↓"):
         project.selectNext()
-    elif event == ord("k") or event == nc.KEY_UP:
+    elif event in ("k", "↑"):
         project.selectNext(False)
+    elif re.findall(r"ma$", CringeGlobals.commandCombo + event):
+        raiseEvent("addInstrument")
+    elif re.findall(r"md$", CringeGlobals.commandCombo + event):
+        raiseEvent("rmvInstrument")
+        
+    # elif event == ord("m"):
+    #     CringeGlobals.commandCombo = "m"
+    # # elif event == ord("C"):
+    # #     raiseEvent("changeInstrument", "color")
+    # # elif event == ord("V"):
+    # #     raiseEvent("changeInstrument", "visible")
+    # # elif event == ord("T"):
+    # #     raiseEvent("changeInstrument", "type")
+    # # elif event == ord("R"):
+    # #     raiseEvent("changeInstrument", "name")
+    # else:
+        # CringeGlobals.debugInfo = event
+        
+    elif event == "Esc":
+        CringeGlobals.commandCombo = ""
     else:
-        CringeGlobals.debugInfo = event
+        preserveCombo = True
+        
+    if preserveCombo:
+        CringeGlobals.commandCombo += event
+    else:
+        CringeGlobals.commandCombo = ""
 
 def normalPositionner():
-    project.position = [screen.getmaxyx()[1] - 20, 5]
-    modeList["normal"].getWidget("separatorLine").position = [screen.getmaxyx()[1] - 21, 3]
-    modeList["normal"].getWidget("instrumentListToolbar").position = [screen.getmaxyx()[1] - 20, 4]
+    project.position = [CringeGlobals.screen.getmaxyx()[1] - 20, 5]
+    modeList["normal"].getWidget("separatorLine").position = [CringeGlobals.screen.getmaxyx()[1] - 21, 3]
+    modeList["normal"].getWidget("instrumentListToolbar").position = [CringeGlobals.screen.getmaxyx()[1] - 20, 4]
 
 def onInstrumentListUpdate(instrumentList: Project):
     global rmvInstrumentBtn, uppInstrumentBtn, dwnInstrumentBtn
@@ -258,8 +300,8 @@ def undoRedoBtnsUpdate(*_):
 ### Normal ###
 
 ### Insert ###
-def insertKeyboardEvents(event: int):
-    if event == 27:
+def insertKeyboardEvents(event: str):
+    if event == "Esc":
         raiseEvent("modeUpdate", "normal")
 
 def insertPositionner():
@@ -267,8 +309,8 @@ def insertPositionner():
 ### Insert ###
 
 ### Settings ###
-def settingsKeyboardEvents(event: int):
-    if event == 27:
+def settingsKeyboardEvents(event: str):
+    if event == "Esc":
         raiseEvent("modeUpdate", "normal")
 
 def settingsPositionner():
@@ -281,7 +323,7 @@ helpTextBody = LargeText(
     name="helpTextBody",
     text=CringeDocs.helpContents[0][1],
     position=[1, 4],
-    size=[screen.getmaxyx()[1] - 2, screen.getmaxyx()[0] - 7]
+    size=[CringeGlobals.screen.getmaxyx()[1] - 2, CringeGlobals.screen.getmaxyx()[0] - 7]
 )
 helpTextBody.pageIndex = 0
 
@@ -291,17 +333,17 @@ helpHeader = Text(
 )
 helpHeader.changeText(f"{CringeDocs.helpContents[helpTextBody.pageIndex][0]} {helpTextBody.pageIndex + 1}/{len(CringeDocs.helpContents)}")
 
-def helpKeyboardEvents(event: int):
-    if event == 27:
+def helpKeyboardEvents(event: str):
+    if event == "Esc":
        raiseEvent("modeUpdate", "normal")
        
-    elif event == nc.KEY_LEFT:
+    elif event == "←":
         raiseEvent("changeHelpPage", "prev")
-    elif event == nc.KEY_RIGHT:
+    elif event == "→":
         raiseEvent("changeHelpPage", "next")
         
 def helpPositionner():
-    helpTextBody.resize([screen.getmaxyx()[1] - 2, screen.getmaxyx()[0] - 7])
+    helpTextBody.resize([CringeGlobals.screen.getmaxyx()[1] - 2, CringeGlobals.screen.getmaxyx()[0] - 7])
     
 def onPageChange(next: Widget | str):
     global helpTextBody, helpHeader, activeMode
@@ -396,7 +438,7 @@ modeList = {
             VLine(
                 screen=CringeGlobals.screen,
                 name="separatorLine",
-                position=[screen.getmaxyx()[1] - 20 - 1, 3],
+                position=[CringeGlobals.screen.getmaxyx()[1] - 20 - 1, 3],
                 expand=True
             ),
             project,
@@ -478,7 +520,7 @@ def onModeUpdate(newMode: str | Widget):
     activeMode = modeList[newMode]
     activeMode.loadMode()
 
-    raiseEvent("screenResized")
+    raiseEvent("CringeGlobals.screenResized")
     redrawScreen()
 
 def onScreenResized():
@@ -520,7 +562,7 @@ def onRedo(*_):
 ### Subscribtions ###
 subscribe("modeUpdate", onModeUpdate)
 subscribe("mouseEvent", modeButtonsClickHandler)
-subscribe("screenResized", onScreenResized)
+subscribe("CringeGlobals.screenResized", onScreenResized)
 subscribe("saveState", onSaveState)
 subscribe("undo", onUndo)
 subscribe("redo", onRedo)
@@ -528,11 +570,11 @@ subscribe("redo", onRedo)
 
 ### Functions ###
 def redrawScreen() -> None:
-    screen.erase()
+    CringeGlobals.screen.erase()
 
     mainToolbar.draw()
     HLine(
-        screen,
+        CringeGlobals.screen,
         position=[0, 1],
         expand=True
     ).draw()
@@ -540,18 +582,18 @@ def redrawScreen() -> None:
     activeMode.drawFunction()
 
 def screenResizeCheckerandUpdater() -> list[int, int]:
-    minW = screen.getmaxyx()[1] - max(mainToolbar.size[0], len("".join(statusBar.text)))
-    minH = screen.getmaxyx()[0] - 15
+    minW = CringeGlobals.screen.getmaxyx()[1] - max(mainToolbar.size[0], len("".join(statusBar.text)))
+    minH = CringeGlobals.screen.getmaxyx()[0] - 15
     
     while minW < 0 or minH < 0:
-        minW = screen.getmaxyx()[1] - max(mainToolbar.size[0], len("".join(statusBar.text))) - 2
-        minH = screen.getmaxyx()[0] - 15 - 2
+        minW = CringeGlobals.screen.getmaxyx()[1] - max(mainToolbar.size[0], len("".join(statusBar.text))) - 2
+        minH = CringeGlobals.screen.getmaxyx()[0] - 15 - 2
 
-        screen.erase()
-        screen.addch(0, 0, "")
-        screen.refresh()
+        CringeGlobals.screen.erase()
+        CringeGlobals.screen.addch(0, 0, "")
+        CringeGlobals.screen.refresh()
 
-    raiseEvent("screenResized")
+    raiseEvent("CringeGlobals.screenResized")
     redrawScreen()
-    return screen.getmaxyx()
+    return CringeGlobals.screen.getmaxyx()
 ### Functions ###

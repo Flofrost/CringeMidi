@@ -5,7 +5,7 @@ from random import randint
 from CringeEvents import raiseEvent
 import json
 
-from CringeGlobals import *
+import CringeGlobals
 from CringeMisc import *
 
 #                  0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
@@ -21,7 +21,7 @@ class Widget(metaclass=ABCMeta):
         size: list[int, int] = None
     ) -> None:
         
-        self.screen = screen
+        self.screen = CringeGlobals.screen
         self.name = name
         self.position = [0, 0] if position is None else position
         self.size = [1, 1] if size is None else size
@@ -84,7 +84,7 @@ class HLine(Widget):
         super().__init__(screen, name, position, size)
 
         if expand:
-            self.size = [screen.getmaxyx()[1] - self.position[0], 1]
+            self.size = [CringeGlobals.screen.getmaxyx()[1] - self.position[0], 1]
         else:
             self.size = [size, 1]
         
@@ -106,15 +106,15 @@ class HLine(Widget):
         posToFix = []
         for i in range(self.size[0]):
             col = self.position[0] + i
-            if chr(screen.inch(self.position[1], col)) == "┼":
+            if chr(CringeGlobals.screen.inch(self.position[1], col)) == "┼":
                 index = 0
-                if self.position[1] > 0 and chr(screen.inch(self.position[1] - 1, col)) in ("┼", "│"):
+                if self.position[1] > 0 and chr(CringeGlobals.screen.inch(self.position[1] - 1, col)) in ("┼", "│"):
                     index += 1
-                if col > 0 and chr(screen.inch(self.position[1], col - 1)) in ("┼", "─"):
+                if col > 0 and chr(CringeGlobals.screen.inch(self.position[1], col - 1)) in ("┼", "─"):
                     index += 2
-                if self.position[1] < screen.getmaxyx()[0] - 1 and chr(screen.inch(self.position[1] + 1, col)) in ("┼", "│"):
+                if self.position[1] < CringeGlobals.screen.getmaxyx()[0] - 1 and chr(CringeGlobals.screen.inch(self.position[1] + 1, col)) in ("┼", "│"):
                     index += 4
-                if col < screen.getmaxyx()[1] - 1 and chr(screen.inch(self.position[1], col + 1)) in ("┼", "─"):
+                if col < CringeGlobals.screen.getmaxyx()[1] - 1 and chr(CringeGlobals.screen.inch(self.position[1], col + 1)) in ("┼", "─"):
                     index += 8
                 posToFix.append([self.position[1], col, lineComponents[index]])
 
@@ -134,7 +134,7 @@ class VLine(Widget):
     ) -> None:
         
         if expand:
-            ssize = [1, screen.getmaxyx()[0] - position[1]]
+            ssize = [1, CringeGlobals.screen.getmaxyx()[0] - position[1]]
         else:
             ssize = [1, size]
 
@@ -158,15 +158,15 @@ class VLine(Widget):
         posToFix = []
         for j in range(self.size[1]):
             row = self.position[1] + j
-            if chr(screen.inch(row, self.position[0])) == "┼":
+            if chr(CringeGlobals.screen.inch(row, self.position[0])) == "┼":
                 index = 0
-                if row > 0 and chr(screen.inch(row - 1, self.position[0])) in ("┼", "│"):
+                if row > 0 and chr(CringeGlobals.screen.inch(row - 1, self.position[0])) in ("┼", "│"):
                     index += 1
-                if self.position[0] > 0 and chr(screen.inch(row, self.position[0] - 1)) in ("┼", "─"):
+                if self.position[0] > 0 and chr(CringeGlobals.screen.inch(row, self.position[0] - 1)) in ("┼", "─"):
                     index += 2
-                if row < screen.getmaxyx()[0] - 1 and chr(screen.inch(row + 1, self.position[0])) in ("┼", "│"):
+                if row < CringeGlobals.screen.getmaxyx()[0] - 1 and chr(CringeGlobals.screen.inch(row + 1, self.position[0])) in ("┼", "│"):
                     index += 4
-                if self.position[0] < screen.getmaxyx()[1] - 1 and chr(screen.inch(row, self.position[0] + 1)) in ("┼", "─"):
+                if self.position[0] < CringeGlobals.screen.getmaxyx()[1] - 1 and chr(CringeGlobals.screen.inch(row, self.position[0] + 1)) in ("┼", "─"):
                     index += 8
                 posToFix.append([row, self.position[0], lineComponents[index]])
 
@@ -288,7 +288,7 @@ class Button(InteractibleWidget):
         return self.text
 
     def draw(self):
-        color = self.color if self.enabled else nc.color_pair(CRINGE_COLOR_DSBL)
+        color = self.color if self.enabled else nc.color_pair(CringeGlobals.CRINGE_COLOR_DSBL)
         self.screen.addstr(self.position[1], self.position[0], self.text, color)
 
     def clickHandler(self, clickType: int, clickPosition: list[int, int]) -> None:
@@ -384,7 +384,7 @@ class StatusBar():
         color: int = 0
     ) -> None:
         
-        self.screen = screen
+        self.screen = CringeGlobals.screen
         self.text = ["", ""]
         self.color = color
         
@@ -392,8 +392,8 @@ class StatusBar():
         self.position = [0, self.screen.getmaxyx()[0]-1]
         self.screen.addstr(self.position[1], self.position[0], " " * (self.screen.getmaxyx()[1] - 1), nc.color_pair(self.color) | nc.A_REVERSE)
 
-        self.screen.addstr(self.position[1], self.position[0], self.text[0], nc.color_pair(self.color) | nc.A_REVERSE)
-        self.screen.addstr(self.position[1], self.screen.getmaxyx()[1] - len(self.text[1]) - 1, self.text[1], nc.color_pair(self.color) | nc.A_REVERSE)
+        self.screen.addnstr(self.position[1], self.position[0], self.text[0], self.screen.getmaxyx()[1] - 1, nc.color_pair(self.color) | nc.A_REVERSE)
+        self.screen.addnstr(self.position[1], self.screen.getmaxyx()[1] - len(self.text[1]) - 1, self.text[1], len(self.text[1]) - 1,nc.color_pair(self.color) | nc.A_REVERSE)
         
     def updateText(self,textL: str = "", textR: str = ""):
         self.text = [textL, textR]
@@ -425,7 +425,7 @@ class Instrument():
         pass
         
     def draw(self) -> None:
-        color = nc.color_pair(self.color if self.visible else CRINGE_COLOR_DSBL) | (nc.A_REVERSE if self.selected else 0)
+        color = nc.color_pair(self.color if self.visible else CringeGlobals.CRINGE_COLOR_DSBL) | (nc.A_REVERSE if self.selected else 0)
         self.screen.addstr(self.position[1], self.position[0], " " * 20, color)
         self.screen.addstr(self.position[1] + 1, self.position[0], " " * 20, color)
         self.screen.addnstr(self.position[1], self.position[0] + 1, self.name, 18, color)
@@ -449,17 +449,17 @@ class Instrument():
         return False
     
     def changeType(self):
-        insTypeList = CRINGE_ISTR_TYPES
+        insTypeList = CringeGlobals.CRINGE_ISTR_TYPES
         self.type = insTypeList[(insTypeList.index(self.type) + 1) % len(insTypeList)]
         raiseEvent("saveState")
 
     def changeColor(self):
-        colorList = CRINGE_COLOR_ISTR
+        colorList = CringeGlobals.CRINGE_COLOR_ISTR
         self.color = colorList[(colorList.index(self.color) + 1) % len(colorList)]
         raiseEvent("saveState")
         
     def changeName(self):
-        newName = getInput(prompt="New Name : ", limit=18, attributes=nc.color_pair(self.color) | nc.A_REVERSE)
+        newName = CringeGlobals.getInput(prompt="New Name : ", limit=18, attributes=nc.color_pair(self.color) | nc.A_REVERSE)
         if newName:
             self.name = newName
             raiseEvent("saveState")
@@ -494,7 +494,7 @@ class Project(InteractibleWidget):
         position: list[int, int] = None,
     ) -> None:
         
-        size = [screen.getmaxyx()[1], screen.getmaxyx()[0] - position[1] - 1]
+        size = [CringeGlobals.screen.getmaxyx()[1], CringeGlobals.screen.getmaxyx()[0] - position[1] - 1]
         super().__init__(screen, name, position, size, True)
 
 
@@ -550,7 +550,7 @@ class Project(InteractibleWidget):
                 raiseEvent("instrumentListUpdate", self)
             
     def addInstrument(self, *_):
-        self.instrumentList.append(Instrument(screen=self.pad, color=randint(CRINGE_COLOR_ISTR[0], CRINGE_COLOR_ISTR[-1])))
+        self.instrumentList.append(Instrument(screen=self.pad, color=randint(CringeGlobals.CRINGE_COLOR_ISTR[0], CringeGlobals.CRINGE_COLOR_ISTR[-1])))
         if len(self.instrumentList) + 1 > self.pad.getmaxyx()[0] // 2:
             self.pad.resize(len(self.instrumentList) * 2 + 7, 20)
         self.draw()

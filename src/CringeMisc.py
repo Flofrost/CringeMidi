@@ -66,6 +66,13 @@ def decodeNotes(notes: list[str]) -> list[int]:
 
 
 ### Misc ###
+def regexTest(pattern: str, s: str, outputList: list[str]) -> bool:
+    r = re.findall(pattern, s)
+    if r:
+        outputList[0] = r
+        return True
+    return False
+
 def generateUID() -> str:
     return "".join([chr(randint(0x20, 0x7E)) for i in range(16)])
 

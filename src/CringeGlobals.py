@@ -18,6 +18,7 @@ CRINGE_ISTR_TYPES = [
 ]
 
 debugInfo = ""
+commandCombo = ""
 
 def initCringeMidi() -> nc._CursesWindow:
     screen = nc.initscr()
