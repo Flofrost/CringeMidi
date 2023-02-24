@@ -451,22 +451,22 @@ class Instrument():
     def changeType(self):
         insTypeList = CringeGlobals.CRINGE_ISTR_TYPES
         self.type = insTypeList[(insTypeList.index(self.type) + 1) % len(insTypeList)]
-        raiseEvent("saveState")
+        raiseEvent("scheduleSaveState")
 
     def changeColor(self):
         colorList = CringeGlobals.CRINGE_COLOR_ISTR
         self.color = colorList[(colorList.index(self.color) + 1) % len(colorList)]
-        raiseEvent("saveState")
+        raiseEvent("scheduleSaveState")
         
     def changeName(self):
         newName = CringeGlobals.getInput(prompt="New Name : ", limit=18, attributes=nc.color_pair(self.color) | nc.A_REVERSE)
         if newName:
             self.name = newName
-            raiseEvent("saveState")
+            raiseEvent("scheduleSaveState")
         
     def toggleVisible(self):
         self.visible = not self.visible
-        raiseEvent("saveState")
+        raiseEvent("scheduleSaveState")
 
     def encode(self) -> dict:
         return {
@@ -555,7 +555,7 @@ class Project(InteractibleWidget):
             self.pad.resize(len(self.instrumentList) * 2 + 7, 20)
         self.draw()
         raiseEvent("instrumentListUpdate", self)
-        raiseEvent("saveState")
+        raiseEvent("scheduleSaveState")
     
     def rmvInstrument(self, *_):
         if len(self.instrumentList) > 1:
@@ -567,7 +567,7 @@ class Project(InteractibleWidget):
                     self.scrollIndex = max(self.pad.getmaxyx()[0] - self.size[1], 0)
             self.draw()
         raiseEvent("instrumentListUpdate", self)
-        raiseEvent("saveState")
+        raiseEvent("scheduleSaveState")
             
     def selectNext(self, next=True):
         self.selectee = (self.selectee + (1 if next else -1)) % len(self.instrumentList)
@@ -586,7 +586,7 @@ class Project(InteractibleWidget):
             self.instrumentList.insert(self.selectee, ins)
             self.draw()
         raiseEvent("instrumentListUpdate", self)
-        raiseEvent("saveState")
+        raiseEvent("scheduleSaveState")
             
     def dwnInstrument(self, *_):
         if self.selectee < len(self.instrumentList) - 1:
@@ -595,7 +595,7 @@ class Project(InteractibleWidget):
             self.instrumentList.insert(self.selectee, ins)
             self.draw()
         raiseEvent("instrumentListUpdate", self)
-        raiseEvent("saveState")
+        raiseEvent("scheduleSaveState")
         
     def changeInstrument(self, thingToChange: str):
         if   thingToChange == "visible":

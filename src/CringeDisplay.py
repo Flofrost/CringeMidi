@@ -317,6 +317,7 @@ def undoRedoBtnsUpdate(*_):
 def insertKeyboardEvents(event: str):
     if event == "Esc":
         raiseEvent("modeUpdate", "normal")
+        raiseEvent("saveState")
 
 def insertPositionner():
     pass
@@ -388,7 +389,7 @@ modeList = {
             ["changeInstrument", project.changeInstrument],
             ["undo", undoRedoBtnsUpdate],
             ["redo", undoRedoBtnsUpdate],
-            ["saveState", undoRedoBtnsUpdate],
+            ["rewindListUpdated", undoRedoBtnsUpdate],
         ],
         widgets=[
             Layout(
@@ -546,19 +547,29 @@ def modeButtonsClickHandler(clickType, clickPosition):
     for button in mainToolbar.interactibles:
         button.clickHandler(clickType, clickPosition)
 
+def onScheduleSaveState():
+    CringeGlobals.saveStateStatus = "󱫍 "
+    schedule("saveState", onSaveState, 100)
+
 def onSaveState():
     global rewindIndex, rewindList
 
-    if rewindIndex:
-        rewindList = rewindList[rewindIndex:]
-        rewindIndex = 0
-    
+    CringeGlobals.saveStateStatus = ""
+
     state = project.save()
-    if not rewindList or state != rewindList[0]:
+
+    if not rewindList or state != rewindList[rewindIndex]:
+        if rewindIndex:
+            rewindList = rewindList[rewindIndex:]
+            rewindIndex = 0
         rewindList.insert(0, project.save())
+        raiseEvent("rewindListUpdated")
 
 def onUndo(*_):
     global rewindIndex, rewindList
+    
+    if CringeGlobals.saveStateStatus:
+        raiseEvent("saveState")
 
     if rewindIndex + 1 < len(rewindList):
         rewindIndex += 1
@@ -577,7 +588,8 @@ def onRedo(*_):
 ### Subscribtions ###
 subscribe("modeUpdate", onModeUpdate)
 subscribe("mouseEvent", modeButtonsClickHandler)
-subscribe("CringeGlobals.screenResized", onScreenResized)
+subscribe("screenResized", onScreenResized)
+subscribe("scheduleSaveState", onScheduleSaveState)
 subscribe("saveState", onSaveState)
 subscribe("undo", onUndo)
 subscribe("redo", onRedo)
@@ -608,7 +620,7 @@ def screenResizeCheckerandUpdater() -> list[int, int]:
         CringeGlobals.screen.addch(0, 0, "")
         CringeGlobals.screen.refresh()
 
-    raiseEvent("CringeGlobals.screenResized")
+    raiseEvent("screenResized")
     redrawScreen()
     return CringeGlobals.screen.getmaxyx()
 ### Functions ###

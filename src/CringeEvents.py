@@ -47,12 +47,17 @@ def unschedule(name: str):
 def runScheduler():
     global tickTimestamp, scheduledEvents
 
+    toUnschedule = list()
+
     for eventName, event in scheduledEvents.items():
         if tickTimestamp - event["date"] > event["delay"]:
             event["function"](*event["data"])
             if event["persistent"]:
                 event["date"] = tickTimestamp
             else:
-                unschedule(eventName)
+                toUnschedule.append(eventName)
+                
+    for eventName in toUnschedule:
+        unschedule(eventName)
 
     tickTimestamp += 1

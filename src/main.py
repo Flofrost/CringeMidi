@@ -13,7 +13,6 @@ try:
     
     CringeEvents.raiseEvent("modeUpdate", "normal")
     CringeEvents.raiseEvent("saveState")
-    CringeEvents.schedule("test", CringeDisplay.project.changeInstrument, 50, True, "color")
 
     screenSize = CringeDisplay.screenResizeCheckerandUpdater()
     
@@ -34,7 +33,7 @@ try:
         if nc.is_term_resized(screenSize[0], screenSize[1]): # Resize Controller
             screenSize = CringeDisplay.screenResizeCheckerandUpdater()
             
-        CringeDisplay.statusBar.updateText(f" {' ' + CringeGlobals.commandCombo if CringeGlobals.commandCombo else ''}", f"{CringeGlobals.debugInfo} ")
+        CringeDisplay.statusBar.updateText(f" {' ' + CringeGlobals.commandCombo if CringeGlobals.commandCombo else ''}", f"{CringeGlobals.saveStateStatus} {CringeGlobals.debugInfo} ")
 
 finally:
     CringeGlobals.endCringeMidi()
