@@ -39,7 +39,7 @@ class Mode():
         self.widgets  = widgets
         self.keyboardEventsHandler = keyboardEventHandler
         self.widgetsPositionner = widgetPositionner
-        self.listeners = eventListeners if eventListeners else []
+        self.listeners = eventListeners if eventListeners else list()
 
     def loadMode(self):
         subscribe("keyboardEvent", self.handleKeyboardEvents)
@@ -78,7 +78,7 @@ class Mode():
         
     @property
     def interactibles(self) -> list[InteractibleWidget]:
-        listOfInteractibles = []
+        listOfInteractibles = list()
         for w in self.widgets:
             if isinstance(w, Layout):
                 listOfInteractibles += w.interactibles
@@ -173,7 +173,7 @@ statusBar = StatusBar(
     color=CringeGlobals.CRINGE_COLOR_PRPL
 )
 
-rewindList = []
+rewindList = list()
 rewindIndex = 0
 ### Global ###
 
@@ -461,12 +461,12 @@ modeList = {
     "insert" : Mode(
         keyboardEventHandler=insertKeyboardEvents,
         widgetPositionner=insertPositionner,
-        widgets=[],
+        widgets=list(),
     ),
     "settings" : Mode(
         keyboardEventHandler=settingsKeyboardEvents,
         widgetPositionner=settingsPositionner,
-        widgets=[],
+        widgets=list(),
     ),
     "help" : Mode(
         keyboardEventHandler=helpKeyboardEvents,
@@ -552,9 +552,10 @@ def onSaveState():
     if rewindIndex:
         rewindList = rewindList[rewindIndex:]
         rewindIndex = 0
-    rewindList.insert(0, project.save())
     
-    CringeGlobals.debugInfo = f"{rewindList.__sizeof__()}, {project.__sizeof__()}"
+    state = project.save()
+    if not rewindList or state != rewindList[0]:
+        rewindList.insert(0, project.save())
 
 def onUndo(*_):
     global rewindIndex, rewindList

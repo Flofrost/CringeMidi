@@ -103,7 +103,7 @@ class HLine(Widget):
             else:
                 self.screen.addch(self.position[1], relPos, "─", nc.color_pair(self.color))
 
-        posToFix = []
+        posToFix = list()
         for i in range(self.size[0]):
             col = self.position[0] + i
             if chr(CringeGlobals.screen.inch(self.position[1], col)) == "┼":
@@ -155,7 +155,7 @@ class VLine(Widget):
             else:
                 self.screen.addch(relPos, self.position[0], "│", nc.color_pair(self.color))
         
-        posToFix = []
+        posToFix = list()
         for j in range(self.size[1]):
             row = self.position[1] + j
             if chr(CringeGlobals.screen.inch(row, self.position[0])) == "┼":
@@ -330,8 +330,8 @@ class Layout(Widget):
             w.draw()
 
     def calculateExpanders(self):
-        listOfNonExpanders: list[Widget] = []
-        listOfExpanders: list[Expander] = []
+        listOfNonExpanders: list[Widget] = list()
+        listOfExpanders: list[Expander] = list()
         for w in self.contents:
             if isinstance(w, Expander):
                 listOfExpanders.append(w)
@@ -370,7 +370,7 @@ class Layout(Widget):
 
     @property
     def interactibles(self) -> list[InteractibleWidget]:
-        listOfInteractibles = []
+        listOfInteractibles = list()
         for w in self.contents:
             if isinstance(w, InteractibleWidget):
                 listOfInteractibles.append(w)

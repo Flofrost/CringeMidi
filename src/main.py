@@ -1,7 +1,6 @@
 #!/bin/python3
 from __future__ import annotations
 import curses as nc
-import traceback
 
 import CringeGlobals
 
@@ -14,6 +13,7 @@ try:
     
     CringeEvents.raiseEvent("modeUpdate", "normal")
     CringeEvents.raiseEvent("saveState")
+    CringeEvents.schedule("test", CringeDisplay.project.changeInstrument, 50, True, "color")
 
     screenSize = CringeDisplay.screenResizeCheckerandUpdater()
     
@@ -21,6 +21,8 @@ try:
         
         event = CringeGlobals.screen.getch()
         
+        CringeEvents.runScheduler()
+
         if event == nc.KEY_MOUSE: # Mouse Events global handler
             event = nc.getmouse()
             eventPosition = event[1:3]
