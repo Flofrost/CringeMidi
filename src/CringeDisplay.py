@@ -168,6 +168,13 @@ project = Project(
     position=[CringeGlobals.screen.getmaxyx()[1] - 20, 4]
 )
 
+sheet =  Sheet(
+    screen=CringeGlobals.screen,
+    name="sheet",
+    project=project,
+    position=[0, 4],
+)
+
 statusBar = StatusBar(
     screen=CringeGlobals.screen,
     color=CringeGlobals.CRINGE_COLOR_PRPL
@@ -289,6 +296,7 @@ def normalKeyboardEvents(event: str):
 
 def normalPositionner():
     project.position = [CringeGlobals.screen.getmaxyx()[1] - 20, 5]
+    sheet.size = [CringeGlobals.screen.getmaxyx()[1] - 20, CringeGlobals.screen.getmaxyx()[0] - 5]
     modeList["normal"].getWidget("separatorLine").position = [CringeGlobals.screen.getmaxyx()[1] - 21, 3]
     modeList["normal"].getWidget("instrumentListToolbar").position = [CringeGlobals.screen.getmaxyx()[1] - 20, 4]
 
@@ -302,6 +310,8 @@ def onInstrumentListUpdate(instrumentList: Project):
     rmvInstrumentBtn.draw()
     uppInstrumentBtn.draw()
     dwnInstrumentBtn.draw()
+    
+    sheet.draw()
 
 def undoRedoBtnsUpdate(*_):
     global rewindIndex, rewindList
@@ -450,6 +460,7 @@ modeList = {
                     ),
                 ]
             ),
+            sheet,
             VLine(
                 screen=CringeGlobals.screen,
                 name="separatorLine",
@@ -535,13 +546,13 @@ def onModeUpdate(newMode: str | Widget):
     activeMode = modeList[newMode]
     activeMode.loadMode()
 
-    raiseEvent("CringeGlobals.screenResized")
-    redrawScreen()
+    raiseEvent("screenResized")
 
 def onScreenResized():
     global activeMode
 
     activeMode.widgetsPositionner()
+    redrawScreen()
 
 def modeButtonsClickHandler(clickType, clickPosition):
     for button in mainToolbar.interactibles:
@@ -621,6 +632,5 @@ def screenResizeCheckerandUpdater() -> list[int, int]:
         CringeGlobals.screen.refresh()
 
     raiseEvent("screenResized")
-    redrawScreen()
     return CringeGlobals.screen.getmaxyx()
 ### Functions ###

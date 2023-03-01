@@ -578,6 +578,7 @@ class Project(InteractibleWidget):
             self.scrollIndex = self.selectee * 2 - self.size[1] + 3
 
         self.draw()
+        raiseEvent("instrumentListUpdate", self)
         
     def uppInstrument(self, *_):
         if self.selectee > 0:
@@ -631,3 +632,35 @@ class Project(InteractibleWidget):
     @property
     def selectedInstrument(self) -> Instrument:
         return self.instrumentList[self.selectee]
+
+class Sheet(InteractibleWidget):
+
+    def __init__(
+        self,
+        screen: nc._CursesWindow,
+        name: str,
+        project: Project,
+        position: list[int, int] = None,
+        size: list[int, int] = None,
+    ) -> None:
+
+        super().__init__(screen, name, position, size, True)
+        
+        self.project = project
+        self.pad = nc.newpad(60, max([len(ins.notes) for ins in self.project.instrumentList]) + 100)
+        
+    def draw(self) -> None:
+        self.drawScrollBar()
+        self.drawRuler()
+        
+        for i in range(1, self.size[1] - 1):
+            self.screen.addstr(self.position[1] + i, 0, f"{i}", nc.color_pair(self.project.selectedInstrument.color))
+    
+    def drawScrollBar(self):
+        pass
+
+    def drawRuler(self):
+        pass
+
+    def clickHandler(self, clickType: int, clickPosition: list[int, int]) -> None:
+        pass
