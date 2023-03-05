@@ -648,19 +648,49 @@ class Sheet(InteractibleWidget):
         
         self.project = project
         self.pad = nc.newpad(60, max([len(ins.notes) for ins in self.project.instrumentList]) + 100)
+        self.scrollIndex = 0
         
-    def draw(self) -> None:
+    def draw(self, refreshSheet=False) -> None:
         self.drawScrollBar()
         self.drawRuler()
         
-        for i in range(1, self.size[1] - 1):
-            self.screen.addstr(self.position[1] + i, 0, f"{i}", nc.color_pair(self.project.selectedInstrument.color))
-    
+        if refreshSheet:
+            self.refreshSheet()
+
+        for i in range(self.size[1] - 2):
+            note = 59 - i - self.scrollIndex
+            if note >= 0:
+                note = noteTable[note]
+                if len(note) < 3:
+                    note = note[0] + " " + note[1]
+            else:
+                note = "   "
+            self.screen.addstr(self.position[1] + i + 1, 0, f"{note}", nc.color_pair(self.project.selectedInstrument.color)) 
+        
     def drawScrollBar(self):
         pass
 
     def drawRuler(self):
         pass
 
+    def refreshSheet(self):
+        maxLen = max([len(ins.notes) for ins in self.project.instrumentList]) + 100
+        if maxLen > self.pad.getmaxyx()[1]:
+            self.pad.resize(60, maxLen)
+
     def clickHandler(self, clickType: int, clickPosition: list[int, int]) -> None:
-        pass
+        relPos = subPos(clickPosition, self.position)
+        if (relPos[0] >= 0) and (relPos[1] >= 0) and (relPos[0] < self.size[0]) and (relPos[1] < self.size[1]):
+            if clickType == (nc.BUTTON5_PRESSED | nc.BUTTON_SHIFT):
+                self.scroll()
+            elif clickType == (nc.BUTTON4_PRESSED | nc.BUTTON_SHIFT):
+                self.scroll(True)
+                
+    def scroll(self, up=False):
+        if up:
+            if self.scrollIndex > 0:
+                self.scrollIndex -= 1
+        else:
+            if self.scrollIndex < self.pad.getmaxyx()[0] - self.size[1]:
+                self.scrollIndex += 1
+        self.draw()

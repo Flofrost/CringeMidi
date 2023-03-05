@@ -14,8 +14,8 @@ kbKeys = {
     nc.KEY_DOWN : "↓",
     546 : "CTRL+←",
     561 : "CTRL+→",
-    567 : "CTRL+↑",
-    526 : "CTRL+↓",
+    573 : "CTRL+↑",
+    532 : "CTRL+↓",
     337 : "SHIFT+↑",
     336 : "SHIFT+↓",
     402 : "SHIFT+→",
@@ -223,7 +223,7 @@ dwnInstrumentBtn = Button(
                 )
 
 def normalKeyboardEvents(event: str):
-    global project
+    global project, sheet
 
     preserveCombo = False
     command = [""]
@@ -277,13 +277,31 @@ def normalKeyboardEvents(event: str):
         
     elif re.findall(r"^mc$", CringeGlobals.commandCombo + event): # Change Instrument Color
         raiseEvent("changeInstrument", "color")
+        raiseEvent("instrumentListUpdate", project)
     elif re.findall(r"^mv$", CringeGlobals.commandCombo + event): # Toggle Instrument Visibility
         raiseEvent("changeInstrument", "visible")
+        raiseEvent("instrumentListUpdate", project)
     elif re.findall(r"^mt$", CringeGlobals.commandCombo + event): # Change Instrument Type
         raiseEvent("changeInstrument", "type")
     elif re.findall(r"^mr$", CringeGlobals.commandCombo + event): # Change Instrument Name
         raiseEvent("changeInstrument", "name")
         
+    elif regexTest(r"^(\d+)?CTRL\+↑$", CringeGlobals.commandCombo + event, command):
+        count: str = command[0][0]
+        count = max(int(count), 1) if count.isnumeric() else 1
+        for i in range(count):
+            sheet.scroll(True)
+    elif regexTest(r"^(\d+)?CTRL\+↓$", CringeGlobals.commandCombo + event, command):
+        count: str = command[0][0]
+        count = max(int(count), 1) if count.isnumeric() else 1
+        for i in range(count):
+            sheet.scroll()
+
+    elif event == "Esc" and CringeGlobals.commandCombo:
+        CringeGlobals.commandCombo = ""
+    elif event == "Esc" and "saveState" in scheduledEvents:
+        unschedule("saveState")
+        raiseEvent("saveState")
     elif event == "Esc":
         CringeGlobals.commandCombo = ""
     else:
