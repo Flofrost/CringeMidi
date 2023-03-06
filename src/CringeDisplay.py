@@ -290,12 +290,12 @@ def normalKeyboardEvents(event: str):
         count: str = command[0][0]
         count = max(int(count), 1) if count.isnumeric() else 1
         for i in range(count):
-            sheet.scroll(True)
+            sheet.scrollV(True)
     elif regexTest(r"^(\d+)?CTRL\+↓$", CringeGlobals.commandCombo + event, command):
         count: str = command[0][0]
         count = max(int(count), 1) if count.isnumeric() else 1
         for i in range(count):
-            sheet.scroll()
+            sheet.scrollV()
 
     elif event == "Esc" and CringeGlobals.commandCombo:
         CringeGlobals.commandCombo = ""

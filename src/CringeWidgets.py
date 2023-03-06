@@ -1,6 +1,8 @@
 from __future__ import annotations
+from codecs import charmap_build
 import curses as nc
 from abc import ABCMeta, abstractmethod
+from operator import truediv
 from random import randint
 from CringeEvents import raiseEvent
 import json
@@ -521,12 +523,9 @@ class Project(InteractibleWidget):
 
         self.screen.refresh()
         self.pad.refresh(
-            self.scrollIndex,
-            0,
-            self.position[1],
-            self.position[0],
-            self.position[1] + self.size[1],
-            self.position[0] + self.size[0]
+            self.scrollIndex, 0,
+            self.position[1], self.position[0],
+            self.position[1] + self.size[1], self.position[0] + self.size[0]
         )
     
     def clickHandler(self, clickType: int, clickPosition: list[int, int]) -> None:
@@ -649,14 +648,17 @@ class Sheet(InteractibleWidget):
         self.project = project
         self.pad = nc.newpad(60, max([len(ins.notes) for ins in self.project.instrumentList]) + 100)
         self.scrollIndex = 0
+        self.touched = True
         
-    def draw(self, refreshSheet=False) -> None:
+    def draw(self) -> None:
         self.drawScrollBar()
         self.drawRuler()
         
-        if refreshSheet:
+        if self.touched:
             self.refreshSheet()
+            self.touched = False
 
+        # Notes on the side
         for i in range(self.size[1] - 2):
             note = 59 - i - self.scrollIndex
             if note >= 0:
@@ -665,7 +667,14 @@ class Sheet(InteractibleWidget):
                     note = note[0] + " " + note[1]
             else:
                 note = "   "
-            self.screen.addstr(self.position[1] + i + 1, 0, f"{note}", nc.color_pair(self.project.selectedInstrument.color)) 
+            self.screen.addstr(self.position[1] + i + 1, 0, f"{note}", nc.color_pair(self.project.selectedInstrument.color) | (nc.A_BOLD if not "#" in note else 0))
+            
+        self.screen.refresh()
+        self.pad.refresh(
+            0, 0,
+            self.position[1] + 1, self.position[0] + 3,
+            self.size[1] + 2, self.size[0] - 2
+        )
         
     def drawScrollBar(self):
         pass
@@ -677,16 +686,26 @@ class Sheet(InteractibleWidget):
         maxLen = max([len(ins.notes) for ins in self.project.instrumentList]) + 100
         if maxLen > self.pad.getmaxyx()[1]:
             self.pad.resize(60, maxLen)
+            
+        for t in range(self.pad.getmaxyx()[1] - 1):
+            for n in range(60):
+                char = nc.ACS_BULLET
+                color = nc.color_pair(CringeGlobals.CRINGE_COLOR_DSBL)
+                
+                if not "#" in noteTable[n]:
+                    color |= nc.A_BOLD
+
+                self.pad.addch(n, t, char, color)
 
     def clickHandler(self, clickType: int, clickPosition: list[int, int]) -> None:
         relPos = subPos(clickPosition, self.position)
         if (relPos[0] >= 0) and (relPos[1] >= 0) and (relPos[0] < self.size[0]) and (relPos[1] < self.size[1]):
             if clickType == (nc.BUTTON5_PRESSED | nc.BUTTON_SHIFT):
-                self.scroll()
+                self.scrollV()
             elif clickType == (nc.BUTTON4_PRESSED | nc.BUTTON_SHIFT):
-                self.scroll(True)
+                self.scrollV(True)
                 
-    def scroll(self, up=False):
+    def scrollV(self, up=False):
         if up:
             if self.scrollIndex > 0:
                 self.scrollIndex -= 1
