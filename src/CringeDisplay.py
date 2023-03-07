@@ -21,8 +21,9 @@ kbKeys = {
     402 : "SHIFT+→",
     393 : "SHIFT+←",
     
-    10 : "Return",
-    27 : "Esc",
+    10  : "Return",
+    27  : "Esc",
+    263 : "Backspace",
 }
 
 ### Mode Manager Class ###
@@ -244,22 +245,22 @@ def normalKeyboardEvents(event: str):
         for i in range(count):
             raiseEvent("redo")
 
-    elif regexTest(r"^(\d+)?(?:j|↓)$", CringeGlobals.commandCombo + event, command): # Select Next Intrument
+    elif regexTest(r"^(\d+)?(?:J|SHIFT\+↓)$", CringeGlobals.commandCombo + event, command): # Select Next Intrument
         count: str = command[0][0]
         count = max(int(count), 1) if count.isnumeric() else 1
         for i in range(count):
             project.selectNext()
-    elif regexTest(r"^(\d+)?(?:k|↑)$", CringeGlobals.commandCombo + event, command): # Select Next Intrument
+    elif regexTest(r"^(\d+)?(?:K|SHIFT\+↑)$", CringeGlobals.commandCombo + event, command): # Select Next Intrument
         count: str = command[0][0]
         count = max(int(count), 1) if count.isnumeric() else 1
         for i in range(count):
             project.selectNext(False)
-    elif regexTest(r"^(\d+)?(?:J|SHIFT\+↓)$", CringeGlobals.commandCombo + event, command): # Move Instrument Down
+    elif regexTest(r"^(\d+)?CTRL\+↓$", CringeGlobals.commandCombo + event, command): # Move Instrument Down
         count: str = command[0][0]
         count = max(int(count), 1) if count.isnumeric() else 1
         for i in range(count):
             raiseEvent("dwnInstrument")
-    elif regexTest(r"^(\d+)?(?:K|SHIFT\+↑)$", CringeGlobals.commandCombo + event, command): # Move Instrument Up
+    elif regexTest(r"^(\d+)?CTRL\+↑$", CringeGlobals.commandCombo + event, command): # Move Instrument Up
         count: str = command[0][0]
         count = max(int(count), 1) if count.isnumeric() else 1
         for i in range(count):
@@ -286,25 +287,35 @@ def normalKeyboardEvents(event: str):
     elif re.findall(r"^mr$", CringeGlobals.commandCombo + event): # Change Instrument Name
         raiseEvent("changeInstrument", "name")
         
-    elif regexTest(r"^(\d+)?CTRL\+↑$", CringeGlobals.commandCombo + event, command):
+    elif regexTest(r"^(\d+)?(?:k|↑)$", CringeGlobals.commandCombo + event, command): # Pan Up
         count: str = command[0][0]
         count = max(int(count), 1) if count.isnumeric() else 1
         for i in range(count):
             sheet.scrollV(True)
-    elif regexTest(r"^(\d+)?CTRL\+↓$", CringeGlobals.commandCombo + event, command):
+    elif regexTest(r"^(\d+)?(?:j|↓)$", CringeGlobals.commandCombo + event, command): # Pan Down
         count: str = command[0][0]
         count = max(int(count), 1) if count.isnumeric() else 1
         for i in range(count):
             sheet.scrollV()
+    elif regexTest(r"^(\d+)?(?:h|←)$", CringeGlobals.commandCombo + event, command): # Pan Left
+        count: str = command[0][0]
+        count = max(int(count), 1) if count.isnumeric() else 1
+        for i in range(count):
+            sheet.scrollH(True)
+    elif regexTest(r"^(\d+)?(?:l|→)$", CringeGlobals.commandCombo + event, command): # Pan Right
+        count: str = command[0][0]
+        count = max(int(count), 1) if count.isnumeric() else 1
+        for i in range(count):
+            sheet.scrollH()
 
     elif event == "Esc" and CringeGlobals.commandCombo:
         CringeGlobals.commandCombo = ""
-    elif event == "Esc" and "saveState" in scheduledEvents:
+    elif event in ("Esc", "Return") and CringeGlobals.saveStateStatus:
         unschedule("saveState")
         raiseEvent("saveState")
     elif event == "Esc":
         CringeGlobals.commandCombo = ""
-    else:
+    elif not re.findall(r"Return|Backspace|CTRL|SHIFT", event): # Ignore some inputs if they're the first in the combo
         preserveCombo = True
         
     if preserveCombo:
