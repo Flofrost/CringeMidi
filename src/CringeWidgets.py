@@ -1,5 +1,6 @@
 from __future__ import annotations
 from codecs import charmap_build
+from ctypes import resize
 import curses as nc
 from abc import ABCMeta, abstractmethod
 from operator import truediv
@@ -417,7 +418,7 @@ class Instrument():
         self.name = name
         self.position = [0, 0]
         self.size = [20, 2]
-        self.notes: list[int] = notes if notes else [0,0,0,0,5,5,5,5,5,5,5,60,60,60,60,60,10,10,10,10,10,10,10,10]
+        self.notes: list[int] = notes if notes else [randint(0,255) for i in range(500)]
         self.type = insType
         self.visible = visible
         self.selected = False
@@ -646,21 +647,17 @@ class Sheet(InteractibleWidget):
         super().__init__(screen, name, position, size, True)
         
         self.project = project
-        self.pad = nc.newpad(60, max([len(ins.notes) for ins in self.project.instrumentList]) + 100)
-        self.scrollIndex = 0
-        self.touched = True
+        self.scrollVIndex = 0
+        self.scrollHIndex = 0
         
     def draw(self) -> None:
         self.drawScrollBar()
         self.drawRuler()
+        self.drawSheet()
         
-        if self.touched:
-            self.refreshSheet()
-            self.touched = False
-
         # Notes on the side
         for i in range(self.size[1] - 2):
-            note = 59 - i - self.scrollIndex
+            note = 59 - i - self.scrollVIndex
             if note >= 0:
                 note = noteTable[note]
                 if len(note) < 3:
@@ -668,13 +665,6 @@ class Sheet(InteractibleWidget):
             else:
                 note = "   "
             self.screen.addstr(self.position[1] + i + 1, 0, f"{note}", nc.color_pair(self.project.selectedInstrument.color) | (nc.A_BOLD if not "#" in note else 0))
-            
-        self.screen.refresh()
-        self.pad.refresh(
-            0, 0,
-            self.position[1] + 1, self.position[0] + 3,
-            self.size[1] + 2, self.size[0] - 2
-        )
         
     def drawScrollBar(self):
         pass
@@ -682,34 +672,64 @@ class Sheet(InteractibleWidget):
     def drawRuler(self):
         pass
 
-    def refreshSheet(self):
-        maxLen = max([len(ins.notes) for ins in self.project.instrumentList]) + 100
-        if maxLen > self.pad.getmaxyx()[1]:
-            self.pad.resize(60, maxLen)
+    def drawSheet(self):
+        for t in range(self.size[0]-4):
+            noteForAllInstrumentsInThisSlice = []
+            volumeForAllInstrumentsInThisSlice = []
             
-        for t in range(self.pad.getmaxyx()[1] - 1):
-            for n in range(60):
-                char = nc.ACS_BULLET
-                color = nc.color_pair(CringeGlobals.CRINGE_COLOR_DSBL)
-                
-                if not "#" in noteTable[n]:
-                    color |= nc.A_BOLD
+            convertedTime = t + self.scrollHIndex
 
-                self.pad.addch(n, t, char, color)
+            for ins in self.project.instrumentList:
+                if ins.visible and convertedTime < len(ins.notes):
+                    volumeForAllInstrumentsInThisSlice.append(ins.notes[convertedTime] >> 6)
+                    noteForAllInstrumentsInThisSlice.append(ins.notes[convertedTime] & 0x3F)
+
+            for n in range(self.size[1]-2):
+                char =  "━"
+                color = CringeGlobals.CRINGE_COLOR_SHRP if "#" in noteTable[n + self.scrollVIndex] else CringeGlobals.CRINGE_COLOR_NTRL
+                
+                convertedNote = 59 - n - self.scrollVIndex
+                if convertedNote in noteForAllInstrumentsInThisSlice:
+                    char = "█▓▒░"[convertedNote >> 6]
+                    color = CringeGlobals.CRINGE_COLOR_DSBL
+                if convertedTime < len(self.project.selectedInstrument.notes) and (self.project.selectedInstrument.notes[convertedTime] & 0x3F) == convertedNote:
+                    char = "█▓▒░"[self.project.selectedInstrument.notes[convertedTime] >> 6]
+                    color = self.project.selectedInstrument.color
+
+                self.screen.addch(self.position[1] + n + 1, self.position[0] + 3 + t, char, nc.color_pair(color))
+                
 
     def clickHandler(self, clickType: int, clickPosition: list[int, int]) -> None:
         relPos = subPos(clickPosition, self.position)
         if (relPos[0] >= 0) and (relPos[1] >= 0) and (relPos[0] < self.size[0]) and (relPos[1] < self.size[1]):
-            if clickType == (nc.BUTTON5_PRESSED | nc.BUTTON_SHIFT):
+            if clickType == nc.BUTTON5_PRESSED:
+                self.scrollH()
+            elif clickType == nc.BUTTON4_PRESSED:
+                self.scrollH(True)
+            elif clickType == (nc.BUTTON5_PRESSED | nc.BUTTON_SHIFT):
                 self.scrollV()
             elif clickType == (nc.BUTTON4_PRESSED | nc.BUTTON_SHIFT):
                 self.scrollV(True)
                 
     def scrollV(self, up=False):
         if up:
-            if self.scrollIndex > 0:
-                self.scrollIndex -= 1
+            if self.scrollVIndex > 0:
+                self.scrollVIndex -= 1
         else:
-            if self.scrollIndex < self.pad.getmaxyx()[0] - self.size[1]:
-                self.scrollIndex += 1
+            if self.scrollVIndex < 60 - self.size[1] + 2:
+                self.scrollVIndex += 1
         self.draw()
+
+    def scrollH(self, left=False):
+        if left:
+            if self.scrollHIndex > 0:
+                self.scrollHIndex -= 1
+        else:
+            if self.scrollHIndex < max([len(ins.notes) for ins in self.project.instrumentList]) - self.size[0] + 50:
+                self.scrollHIndex += 1
+        self.draw()
+        
+    def resize(self, newSize: list[int,int]):
+        self.size = newSize
+        if self.scrollVIndex > 60 - self.size[1]:
+            self.scrollVIndex = max(60 - self.size[1] + 2, 0)
