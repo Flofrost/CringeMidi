@@ -41,7 +41,7 @@ def initCringeMidi() -> nc._CursesWindow:
     if nc.has_colors():
         nc.start_color()
         nc.use_default_colors()
-        nc.init_pair(CringeGlobals.CRINGE_COLOR_BLUE,  39, -1)
+        nc.init_pair(CringeGlobals.CRINGE_COLOR_BLUE,  33, -1)
         nc.init_pair(CringeGlobals.CRINGE_COLOR_PRPL, 135, -1)
         nc.init_pair(CringeGlobals.CRINGE_COLOR_DSBL, 245, -1)
         nc.init_pair(CringeGlobals.CRINGE_COLOR_NTRL, 250, -1)
@@ -62,8 +62,16 @@ def initCringeMidi() -> nc._CursesWindow:
 
     return screen
 
-def terminationJudgement(*args):
-    endCringeMidi()
+def terminationJudgement(*_):
+    if CringeGlobals.projectSavedStatus:
+        endCringeMidi()
+    else:
+        choice = dialogueChoicePrompt(prompt="Current buffer isn't saved:  [S]ave and Exit   [D]iscard and Exit   [C]ancel", acceptedKeys=["S", "s", "D", "d", "C", "c", "Esc"], attributes=nc.color_pair(CringeGlobals.CRINGE_COLOR_BLUE))
+        if choice in ("S", "s"):
+            raiseEvent("saveProject")
+            endCringeMidi()
+        elif choice in ("D", "d"):
+            endCringeMidi()
 
 def endCringeMidi() -> None:
     screen.keypad(0)
@@ -94,7 +102,7 @@ def convertKeyboardEvents(keyCode: int) -> str:
     else:
         raise UnhandledKeyCode(f"Keycode {keyCode} is not handled by function convertKeyboardEvents")
 
-def getTextInput(prompt: str = "", placeholer:str = "", limit: int = 50, attributes: int = 0) -> str | None:
+def textInputPrompt(prompt: str = "", placeholer:str = "", limit: int = 50, attributes: int = 0) -> str | None:
     string = placeholer
     cursor = len(string)
 
@@ -135,6 +143,24 @@ def getTextInput(prompt: str = "", placeholer:str = "", limit: int = 50, attribu
                     cursor += 1
             except UnhandledKeyCode:
                 pass
+
+def dialogueChoicePrompt(prompt: str = "?", acceptedKeys: list[str] = ["Return", "y", "Esc", "n"], attributes: int = 0) -> str:
+    while True:
+        screen.addstr(screen.getmaxyx()[0] - 1, 0, " " * (screen.getmaxyx()[1] - 1), attributes | nc.A_REVERSE)
+        screen.addstr(screen.getmaxyx()[0] - 1, 0, f" {prompt}", attributes | nc.A_REVERSE)
+        
+        event = screen.getch()
+        
+        if event == nc.KEY_RESIZE:
+            screenResizeCheckerandUpdater()
+        elif event != -1:
+            try:
+                event = convertKeyboardEvents(event)
+                if event in acceptedKeys:
+                    return event
+            except UnhandledKeyCode:
+                pass
+
 
 screen = initCringeMidi()
 subscribe("exit", terminationJudgement)

@@ -1,5 +1,4 @@
 import curses as nc
-import curses.ascii as ac
 import re
 
 from CringeEvents import *

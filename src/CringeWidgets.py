@@ -461,7 +461,7 @@ class Instrument():
         raiseEvent("scheduleSaveState")
         
     def changeName(self):
-        newName = CringeDisplay.getTextInput(prompt="New Name : ", placeholer=self.name, limit=18, attributes=nc.color_pair(self.color))
+        newName = CringeDisplay.textInputPrompt(prompt="New Name : ", placeholer=self.name, limit=18, attributes=nc.color_pair(self.color))
         if newName:
             self.name = newName
             raiseEvent("scheduleSaveState")
