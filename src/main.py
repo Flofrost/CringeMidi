@@ -5,30 +5,29 @@ from sys import argv
 from os import path
 
 import CringeGlobals
+import CringeDisplay
 
 try:
     import CringeEvents
-    import CringeDisplay
+    import CringeUI
 
     if len(argv) > 1 and path.exists(argv[1]):
-        CringeDisplay.project.projectPath = argv[1]
-        CringeDisplay.loadProject()
+        CringeUI.project.projectPath = argv[1]
+        CringeUI.loadProject()
     elif len(argv) > 1:
-        CringeDisplay.project.projectPath = argv[1] 
+        CringeUI.project.projectPath = argv[1] 
     else:
-        CringeDisplay.project.projectPath = "NewProject.json"
+        CringeUI.project.projectPath = "NewProject.json"
 
-    CringeGlobals.screen.nodelay(1)
-    CringeGlobals.screen.timeout(20)
+    CringeDisplay.screen.nodelay(1)
+    CringeDisplay.screen.timeout(20)
     
     CringeEvents.raiseEvent("modeUpdate", "normal")
     CringeEvents.raiseEvent("saveState")
-
-    screenSize = CringeDisplay.screenResizeCheckerandUpdater()
     
     while True:
         
-        event = CringeGlobals.screen.getch()
+        event = CringeDisplay.screen.getch()
         
         CringeEvents.runScheduler()
 
@@ -37,13 +36,22 @@ try:
             eventPosition = event[1:3]
             event = event[4]
             CringeEvents.raiseEvent("mouseEvent", event, eventPosition)
+        elif event == nc.KEY_RESIZE:
+            CringeDisplay.screenResizeCheckerandUpdater()
         elif event != -1: # Keyboard events global handler
-            CringeEvents.raiseEvent("keyboardEvent", event)
-
-        if nc.is_term_resized(screenSize[0], screenSize[1]): # Resize Controller
-            screenSize = CringeDisplay.screenResizeCheckerandUpdater()
+            try:
+                CringeEvents.raiseEvent("keyboardEvent", CringeDisplay.convertKeyboardEvents(event))
+            except CringeEvents.UnhandledKeyCode:
+                CringeGlobals.debugInfo = event
             
-        CringeDisplay.statusBar.updateText(f" {path.basename(CringeDisplay.project.projectPath)} {' ' + CringeGlobals.commandCombo if CringeGlobals.commandCombo else ''}", f"{CringeGlobals.projectSavedStatus} {CringeGlobals.scheduledSaveStateStatus} {CringeGlobals.debugInfo} ")
+        CringeUI.statusBar.updateText(
+            f" {path.basename(CringeUI.project.projectPath)}" +
+            f" {' ' + CringeGlobals.commandCombo if CringeGlobals.commandCombo else ''}",
+
+            f"{CringeGlobals.projectSavedStatus} " +
+            f"{CringeGlobals.scheduledSaveStateStatus} " +
+            f"{CringeGlobals.debugInfo} "
+        )
 
 finally:
-    CringeGlobals.endCringeMidi()
+    CringeDisplay.endCringeMidi()

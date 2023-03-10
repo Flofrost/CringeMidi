@@ -6,6 +6,8 @@ from CringeEvents import raiseEvent
 import json
 
 import CringeGlobals
+import CringeDisplay
+from CringeEvents import *
 from CringeMisc import *
 
 #                  0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
@@ -21,7 +23,7 @@ class Widget(metaclass=ABCMeta):
         size: list[int, int] = None
     ) -> None:
         
-        self.screen = CringeGlobals.screen
+        self.screen = CringeDisplay.screen
         self.name = name
         self.position = [0, 0] if position is None else position
         self.size = [1, 1] if size is None else size
@@ -84,7 +86,7 @@ class HLine(Widget):
         super().__init__(screen, name, position, size)
 
         if expand:
-            self.size = [CringeGlobals.screen.getmaxyx()[1] - self.position[0], 1]
+            self.size = [CringeDisplay.screen.getmaxyx()[1] - self.position[0], 1]
         else:
             self.size = [size, 1]
         
@@ -106,15 +108,15 @@ class HLine(Widget):
         posToFix = list()
         for i in range(self.size[0]):
             col = self.position[0] + i
-            if chr(CringeGlobals.screen.inch(self.position[1], col)) == "┼":
+            if chr(CringeDisplay.screen.inch(self.position[1], col)) == "┼":
                 index = 0
-                if self.position[1] > 0 and chr(CringeGlobals.screen.inch(self.position[1] - 1, col)) in ("┼", "│"):
+                if self.position[1] > 0 and chr(CringeDisplay.screen.inch(self.position[1] - 1, col)) in ("┼", "│"):
                     index += 1
-                if col > 0 and chr(CringeGlobals.screen.inch(self.position[1], col - 1)) in ("┼", "─"):
+                if col > 0 and chr(CringeDisplay.screen.inch(self.position[1], col - 1)) in ("┼", "─"):
                     index += 2
-                if self.position[1] < CringeGlobals.screen.getmaxyx()[0] - 1 and chr(CringeGlobals.screen.inch(self.position[1] + 1, col)) in ("┼", "│"):
+                if self.position[1] < CringeDisplay.screen.getmaxyx()[0] - 1 and chr(CringeDisplay.screen.inch(self.position[1] + 1, col)) in ("┼", "│"):
                     index += 4
-                if col < CringeGlobals.screen.getmaxyx()[1] - 1 and chr(CringeGlobals.screen.inch(self.position[1], col + 1)) in ("┼", "─"):
+                if col < CringeDisplay.screen.getmaxyx()[1] - 1 and chr(CringeDisplay.screen.inch(self.position[1], col + 1)) in ("┼", "─"):
                     index += 8
                 posToFix.append([self.position[1], col, lineComponents[index]])
 
@@ -134,7 +136,7 @@ class VLine(Widget):
     ) -> None:
         
         if expand:
-            ssize = [1, CringeGlobals.screen.getmaxyx()[0] - position[1]]
+            ssize = [1, CringeDisplay.screen.getmaxyx()[0] - position[1]]
         else:
             ssize = [1, size]
 
@@ -158,15 +160,15 @@ class VLine(Widget):
         posToFix = list()
         for j in range(self.size[1]):
             row = self.position[1] + j
-            if chr(CringeGlobals.screen.inch(row, self.position[0])) == "┼":
+            if chr(CringeDisplay.screen.inch(row, self.position[0])) == "┼":
                 index = 0
-                if row > 0 and chr(CringeGlobals.screen.inch(row - 1, self.position[0])) in ("┼", "│"):
+                if row > 0 and chr(CringeDisplay.screen.inch(row - 1, self.position[0])) in ("┼", "│"):
                     index += 1
-                if self.position[0] > 0 and chr(CringeGlobals.screen.inch(row, self.position[0] - 1)) in ("┼", "─"):
+                if self.position[0] > 0 and chr(CringeDisplay.screen.inch(row, self.position[0] - 1)) in ("┼", "─"):
                     index += 2
-                if row < CringeGlobals.screen.getmaxyx()[0] - 1 and chr(CringeGlobals.screen.inch(row + 1, self.position[0])) in ("┼", "│"):
+                if row < CringeDisplay.screen.getmaxyx()[0] - 1 and chr(CringeDisplay.screen.inch(row + 1, self.position[0])) in ("┼", "│"):
                     index += 4
-                if self.position[0] < CringeGlobals.screen.getmaxyx()[1] - 1 and chr(CringeGlobals.screen.inch(row, self.position[0] + 1)) in ("┼", "─"):
+                if self.position[0] < CringeDisplay.screen.getmaxyx()[1] - 1 and chr(CringeDisplay.screen.inch(row, self.position[0] + 1)) in ("┼", "─"):
                     index += 8
                 posToFix.append([row, self.position[0], lineComponents[index]])
 
@@ -348,7 +350,7 @@ class Layout(Widget):
         sizeToFit = maxSize - sizeToFit
         
         if sizeToFit < 0:
-            raise Exception(f"Can't fit all elements in available real estate {self.name}")
+            raise ScreenTooSmall(f"Can't fit all elements in available real estate {self.name}")
             
         expantionSize = sizeToFit // len(listOfExpanders)
         for w in listOfExpanders:
@@ -376,7 +378,7 @@ class Layout(Widget):
                 listOfInteractibles.append(w)
         return listOfInteractibles
 
-class StatusBar():
+class StatusBar(Widget):
 
     def __init__(
         self, 
@@ -384,16 +386,16 @@ class StatusBar():
         color: int = 0
     ) -> None:
         
-        self.screen = CringeGlobals.screen
+        super().__init__(screen, "statusBar", None, None)
+
         self.text = ["", ""]
         self.color = color
         
     def draw(self):
-        self.position = [0, self.screen.getmaxyx()[0]-1]
-        self.screen.addstr(self.position[1], self.position[0], " " * (self.screen.getmaxyx()[1] - 1), nc.color_pair(self.color) | nc.A_REVERSE)
+        self.screen.addstr(self.screen.getmaxyx()[0] - 1, 0, " " * (self.screen.getmaxyx()[1] - 1), nc.color_pair(self.color) | nc.A_REVERSE)
 
-        self.screen.addnstr(self.position[1], self.position[0], self.text[0], self.screen.getmaxyx()[1] - 1, nc.color_pair(self.color) | nc.A_REVERSE)
-        self.screen.addnstr(self.position[1], self.screen.getmaxyx()[1] - len(self.text[1]) - 1, self.text[1], len(self.text[1]) - 1,nc.color_pair(self.color) | nc.A_REVERSE)
+        self.screen.addnstr(self.screen.getmaxyx()[0] - 1, 0, self.text[0], self.screen.getmaxyx()[1] - 1, nc.color_pair(self.color) | nc.A_REVERSE)
+        self.screen.addnstr(self.screen.getmaxyx()[0] - 1, self.screen.getmaxyx()[1] - len(self.text[1]) - 1, self.text[1], len(self.text[1]), nc.color_pair(self.color) | nc.A_REVERSE)
         
     def updateText(self,textL: str = "", textR: str = ""):
         self.text = [textL, textR]
@@ -459,7 +461,7 @@ class Instrument():
         raiseEvent("scheduleSaveState")
         
     def changeName(self):
-        newName = CringeGlobals.getInput(prompt="New Name : ", limit=18, attributes=nc.color_pair(self.color) | nc.A_REVERSE)
+        newName = CringeDisplay.getTextInput(prompt="New Name : ", placeholer=self.name, limit=18, attributes=nc.color_pair(self.color))
         if newName:
             self.name = newName
             raiseEvent("scheduleSaveState")
@@ -494,7 +496,7 @@ class Project(InteractibleWidget):
         position: list[int, int] = None,
     ) -> None:
         
-        size = [CringeGlobals.screen.getmaxyx()[1], CringeGlobals.screen.getmaxyx()[0] - position[1] - 1]
+        size = [CringeDisplay.screen.getmaxyx()[1], CringeDisplay.screen.getmaxyx()[0] - position[1] - 1]
         super().__init__(screen, name, position, size, True)
 
 
@@ -510,6 +512,8 @@ class Project(InteractibleWidget):
         
     def updateWidgetsPosition(self):
         self.size = [self.screen.getmaxyx()[1], self.screen.getmaxyx()[0] - self.position[1] - 1]
+        if self.size[1] < 5: raise ScreenTooSmall("Note enough vertical space")
+
         for i, ins in enumerate(self.instrumentList):
             ins.position = [0, i * 2]
             ins.selected = True if i == self.selectee else False

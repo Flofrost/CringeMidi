@@ -61,3 +61,13 @@ def runScheduler():
         unschedule(eventName)
 
     tickTimestamp += 1
+    
+
+class IncorrectNoteFormat(Exception):
+    ...
+    
+class UnhandledKeyCode(Exception):
+    ...
+
+class ScreenTooSmall(Exception):
+    ...
