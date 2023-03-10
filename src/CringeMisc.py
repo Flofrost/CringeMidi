@@ -58,10 +58,13 @@ def encodeNotes(notes: list[int]) -> list[str]:
     return output
             
 def decodeNotes(notes: list[str]) -> list[int]:
-    output = list()
-    for note in notes:
-        output.extend(decodeNote(note))
-    return output
+    try:
+        output = list()
+        for note in notes:
+            output.extend(decodeNote(note))
+        return output
+    except:
+        return list()
 ### Note Encoding and Decoding ###
 
 

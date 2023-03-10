@@ -1,9 +1,6 @@
 from __future__ import annotations
-from codecs import charmap_build
-from ctypes import resize
 import curses as nc
 from abc import ABCMeta, abstractmethod
-from operator import truediv
 from random import randint
 from CringeEvents import raiseEvent
 import json
@@ -506,6 +503,8 @@ class Project(InteractibleWidget):
         self.scrollIndex: int = 0
         self.selectee: int = 0
         
+        self.projectPath = ""
+        
     def __sizeof__(self) -> int:
         return super().__sizeof__() + sum([ins.__sizeof__() for ins in self.instrumentList])
         
@@ -698,7 +697,6 @@ class Sheet(InteractibleWidget):
 
                 self.screen.addch(self.position[1] + n + 1, self.position[0] + 3 + t, char, nc.color_pair(color))
                 
-
     def clickHandler(self, clickType: int, clickPosition: list[int, int]) -> None:
         relPos = subPos(clickPosition, self.position)
         if (relPos[0] >= 0) and (relPos[1] >= 0) and (relPos[0] < self.size[0]) and (relPos[1] < self.size[1]):

@@ -186,6 +186,13 @@ rewindIndex = 0
 ### Global ###
 
 ### Normal ###
+saveBtn = Button(
+    screen=CringeGlobals.screen,
+    name="save",
+    text="󰠘 ",
+    eventToRaise="saveProject",
+    enabled=False
+)
 undoBtn = Button(
     screen=CringeGlobals.screen,
     name="undo",
@@ -310,7 +317,7 @@ def normalKeyboardEvents(event: str):
 
     elif event == "Esc" and CringeGlobals.commandCombo:
         CringeGlobals.commandCombo = ""
-    elif event in ("Esc", "Return") and CringeGlobals.saveStateStatus:
+    elif event in ("Esc", "Return") and CringeGlobals.scheduledSaveStateStatus:
         unschedule("saveState")
         raiseEvent("saveState")
     elif event == "Esc":
@@ -350,6 +357,10 @@ def undoRedoBtnsUpdate(*_):
     
     redoBtn.enabled = rewindIndex > 0
     redoBtn.draw()
+    
+    saveBtn.enabled = len(rewindList) > 1
+    saveBtn.draw()
+    CringeGlobals.projectSavedStatus = "" if len(rewindList) > 1 else "󱣫 "
 ### Normal ###
 
 ### Insert ###
@@ -436,6 +447,11 @@ modeList = {
                 name="normalToolbar",
                 position=[0, 2],
                 contents=[
+                    Text(
+                        screen=CringeGlobals.screen,
+                        text="⠀"
+                    ),
+                    saveBtn,
                     Text(
                         screen=CringeGlobals.screen,
                         text="⠀"
@@ -588,13 +604,13 @@ def modeButtonsClickHandler(clickType, clickPosition):
         button.clickHandler(clickType, clickPosition)
 
 def onScheduleSaveState():
-    CringeGlobals.saveStateStatus = "󱫍 "
+    CringeGlobals.scheduledSaveStateStatus = "󱫍 "
     schedule("saveState", onSaveState, 100)
 
 def onSaveState():
-    global rewindIndex, rewindList
+    global rewindIndex, rewindList, project
 
-    CringeGlobals.saveStateStatus = ""
+    CringeGlobals.scheduledSaveStateStatus = ""
 
     state = project.save()
 
@@ -608,7 +624,7 @@ def onSaveState():
 def onUndo(*_):
     global rewindIndex, rewindList
     
-    if CringeGlobals.saveStateStatus:
+    if CringeGlobals.scheduledSaveStateStatus:
         raiseEvent("saveState")
 
     if rewindIndex + 1 < len(rewindList):
@@ -623,19 +639,29 @@ def onRedo(*_):
         rewindIndex -= 1
         project.load(rewindList[rewindIndex])
         redrawScreen()
-### Events Reactions ###
 
-### Subscribtions ###
-subscribe("modeUpdate", onModeUpdate)
-subscribe("mouseEvent", modeButtonsClickHandler)
-subscribe("screenResized", onScreenResized)
-subscribe("scheduleSaveState", onScheduleSaveState)
-subscribe("saveState", onSaveState)
-subscribe("undo", onUndo)
-subscribe("redo", onRedo)
-### Subscribtions ###
+def saveProject(*_):
+    global project
+    
+    file = open(project.projectPath, "w")
+    file.write(project.save(True))
+    file.close()
+    
+    saveBtn.enabled = False
+    saveBtn.draw()
+    CringeGlobals.projectSavedStatus = "󱣫 "
+    
+def loadProject():
+    global project
 
-### Functions ###
+    file = open(project.projectPath, "r")
+    project.load(file.read())
+    file.close()
+
+    saveBtn.enabled = False
+    saveBtn.draw()
+    CringeGlobals.projectSavedStatus = "󱣫 "
+
 def redrawScreen() -> None:
     CringeGlobals.screen.erase()
 
@@ -662,4 +688,15 @@ def screenResizeCheckerandUpdater() -> list[int, int]:
 
     raiseEvent("screenResized")
     return CringeGlobals.screen.getmaxyx()
-### Functions ###
+### Events Reactions ###
+
+### Subscribtions ###
+subscribe("modeUpdate", onModeUpdate)
+subscribe("mouseEvent", modeButtonsClickHandler)
+subscribe("screenResized", onScreenResized)
+subscribe("scheduleSaveState", onScheduleSaveState)
+subscribe("saveState", onSaveState)
+subscribe("undo", onUndo)
+subscribe("redo", onRedo)
+subscribe("saveProject", saveProject)
+### Subscribtions ###

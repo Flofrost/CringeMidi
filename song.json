@@ -1,0 +1,20 @@
+{
+    "selectee": 0,
+    "scrollIndex": 0,
+    "instrumentList": [
+        {
+            "name": "Bocchi",
+            "type": "square",
+            "visible": true,
+            "color": 13,
+            "notes": "25C6F,15S,25C6F"
+        },
+        {
+            "name": "Ryo",
+            "type": "triangle",
+            "visible": true,
+            "color": 12,
+            "notes": "15D6f,10C6P,10A#5f,20D#6F,10D6p"
+        }
+    ]
+}

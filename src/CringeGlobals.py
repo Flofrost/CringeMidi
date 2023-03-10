@@ -21,7 +21,8 @@ CRINGE_ISTR_TYPES = [
 
 debugInfo = ""
 commandCombo = ""
-saveStateStatus = ""
+projectSavedStatus = "󱣫 "
+scheduledSaveStateStatus = ""
 
 def initCringeMidi() -> nc._CursesWindow:
     screen = nc.initscr()
