@@ -674,13 +674,16 @@ class Sheet(InteractibleWidget):
             self.screen.addstr(self.position[1] + i + 1, 0, f"{note}", nc.color_pair(self.project.selectedInstrument.color) | (nc.A_BOLD if not "#" in note else 0))
         
     def drawScrollBar(self):
-        scrollBar = " " * self.size[0]
-
-        sheetLength = max([len(ins.notes) for ins in self.project.instrumentList]) + 50
-        handleLength = (self.size[0] ** 2) // sheetLength
-        handleLength = max(1, min(sheetLength, handleLength))
-        scrollBar = "◄" + "=" * handleLength + scrollBar[handleLength:-2] + "►"
-        
+        handleStart = self.scrollHIndex / self.length
+        handleStart = int(handleStart * (self.size[0] - 2))
+        handleLength = self.size[0] / self.length
+        handleLength = max(1, min(self.size[0] - 2, int(handleLength * (self.size[0] - 2)) + 1))
+        scrollBar = \
+            "◄" + \
+            " " * handleStart + \
+            "=" * handleLength + \
+            " " * (self.size[0] - handleLength - handleStart - 2) + \
+            "►"
 
         self.screen.addstr(self.position[1] + self.size[1] - 1, self.position[0], scrollBar)
 
@@ -688,7 +691,7 @@ class Sheet(InteractibleWidget):
         pass
 
     def drawSheet(self):
-        for t in range(self.size[0]-4):
+        for t in range(self.size[0]-3):
             noteForAllInstrumentsInThisSlice = []
             volumeForAllInstrumentsInThisSlice = []
             
@@ -739,7 +742,7 @@ class Sheet(InteractibleWidget):
             if self.scrollHIndex > 0:
                 self.scrollHIndex -= 1
         else:
-            if self.scrollHIndex < max([len(ins.notes) for ins in self.project.instrumentList]) - self.size[0] + 50:
+            if self.scrollHIndex < self.length - self.size[0]:
                 self.scrollHIndex += 1
         self.draw()
         
@@ -747,3 +750,7 @@ class Sheet(InteractibleWidget):
         self.size = newSize
         if self.scrollVIndex > 60 - self.size[1]:
             self.scrollVIndex = max(60 - self.size[1] + 2, 0)
+            
+    @property
+    def length(self):
+        return max(self.size[0], max([len(ins.notes) for ins in self.project.instrumentList]) + ((2 * self.size[0]) // 3))

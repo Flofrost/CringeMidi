@@ -1,5 +1,5 @@
 {
-    "selectee": 0,
+    "selectee": 2,
     "scrollIndex": 0,
     "instrumentList": [
         {
@@ -14,7 +14,21 @@
             "type": "triangle",
             "visible": true,
             "color": 12,
-            "notes": "15D6f,10C6P,10A#5f,20D#6F,10D6p,100C2F"
+            "notes": "15D6f,10C6P,10A#5f,20D#6F,10D6p"
+        },
+        {
+            "name": "Kita",
+            "type": "square",
+            "visible": true,
+            "color": 10,
+            "notes": "9A6f,5D#5f,22G#6f,8G6p,29B3F,16A2p,5D2P,21F#3P,2F#2P,5E3p,29G4f,5F#4p,5G#5f,26B4F,25F#3F"
+        },
+        {
+            "name": "Nijika",
+            "type": "noise",
+            "visible": true,
+            "color": 14,
+            "notes": "25F5f,28F#3p,22E3P,13C5P,4C6p,16C5P,7E6F,11G#4F,7B2F,20A3f,7D4p,2E5p"
         }
     ]
 }

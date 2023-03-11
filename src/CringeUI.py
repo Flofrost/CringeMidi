@@ -305,7 +305,7 @@ def normalKeyboardEvents(event: str):
 
 def normalPositionner():
     project.position = [CringeDisplay.screen.getmaxyx()[1] - 20, 5]
-    sheet.resize([CringeDisplay.screen.getmaxyx()[1] - 20, CringeDisplay.screen.getmaxyx()[0] - 5])
+    sheet.resize([CringeDisplay.screen.getmaxyx()[1] - 21, CringeDisplay.screen.getmaxyx()[0] - 5])
     modeList["normal"].getWidget("separatorLine").position = [CringeDisplay.screen.getmaxyx()[1] - 21, 3]
     modeList["normal"].getWidget("instrumentListToolbar").position = [CringeDisplay.screen.getmaxyx()[1] - 20, 4]
 
