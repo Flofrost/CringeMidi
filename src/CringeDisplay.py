@@ -107,59 +107,69 @@ def textInputPrompt(prompt: str = "", placeholer:str = "", limit: int = 50, attr
     cursor = len(string)
 
     while True:
-        screen.addstr(screen.getmaxyx()[0] - 1, 0, " " * (screen.getmaxyx()[1] - 1), attributes | nc.A_REVERSE)
-        screen.addstr(screen.getmaxyx()[0] - 1, 0, f" {prompt}{string}", attributes | nc.A_REVERSE)
-        screen.chgat(screen.getmaxyx()[0] - 1, len(prompt) + cursor + 1, attributes | nc.A_REVERSE | nc.A_UNDERLINE)
-        screen.chgat(screen.getmaxyx()[0] - 1, len(prompt) + cursor + 2, attributes | nc.A_REVERSE)
+        try:
+            screen.addstr(screen.getmaxyx()[0] - 1, 0, " " * (screen.getmaxyx()[1] - 1), attributes | nc.A_REVERSE)
+            screen.addstr(screen.getmaxyx()[0] - 1, 0, f" {prompt}{string}", attributes | nc.A_REVERSE)
+            screen.chgat(screen.getmaxyx()[0] - 1, len(prompt) + cursor + 1, attributes | nc.A_REVERSE | nc.A_UNDERLINE)
+            screen.chgat(screen.getmaxyx()[0] - 1, len(prompt) + cursor + 2, attributes | nc.A_REVERSE)
 
-        event = screen.getch()
-        
-        if event == nc.KEY_RESIZE:
-            screenResizeCheckerandUpdater()
-        elif event != -1:
-            try:
-                event = convertKeyboardEvents(event)
-                
-                if   event == "Esc":
-                    return None
-                elif event == "Return":
-                    if not len(string):
+            event = screen.getch()
+            
+            if event == nc.KEY_RESIZE:
+                screenResizeCheckerandUpdater()
+            elif event != -1:
+                try:
+                    event = convertKeyboardEvents(event)
+                    
+                    if   event == "Esc":
                         return None
-                    return string
-                elif event == "Backspace" and cursor > 0:
-                    string = string[0:cursor-1] + string[cursor:]
-                    cursor -= 1
-                elif event == "Del" and cursor < len(string):
-                    string = string[0:cursor] + string[cursor+1:]
-                elif re.findall(r"^←$", event) and cursor:
-                    cursor -= 1
-                elif re.findall(r"^→$", event) and cursor < len(string):
-                    cursor += 1
-                elif (len(string) < limit) and len(event) == 1 and (ord(event) >= 0x20 and ord(event) < 0x7F):
-                    if string:
-                        string = string[0:cursor] + event + string[cursor:]
-                    else:
-                        string = event
-                    cursor += 1
-            except UnhandledKeyCode:
-                pass
+                    elif event == "Return":
+                        if not len(string):
+                            return None
+                        return string
+                    elif event == "Backspace" and cursor > 0:
+                        string = string[0:cursor-1] + string[cursor:]
+                        cursor -= 1
+                    elif event == "Del" and cursor < len(string):
+                        string = string[0:cursor] + string[cursor+1:]
+                    elif re.findall(r"^←$", event) and cursor:
+                        cursor -= 1
+                    elif re.findall(r"^→$", event) and cursor < len(string):
+                        cursor += 1
+                    elif (len(string) < limit) and len(event) == 1 and (ord(event) >= 0x20 and ord(event) < 0x7F):
+                        if string:
+                            string = string[0:cursor] + event + string[cursor:]
+                        else:
+                            string = event
+                        cursor += 1
+                except UnhandledKeyCode:
+                    pass
+        except:
+            screen.erase()
+            screen.addch(0, 0, "!")
+            screen.refresh()
 
 def dialogueChoicePrompt(prompt: str = "?", acceptedKeys: list[str] = ["Return", "y", "Esc", "n"], attributes: int = 0) -> str:
     while True:
-        screen.addstr(screen.getmaxyx()[0] - 1, 0, " " * (screen.getmaxyx()[1] - 1), attributes | nc.A_REVERSE)
-        screen.addstr(screen.getmaxyx()[0] - 1, 0, f" {prompt}", attributes | nc.A_REVERSE)
-        
-        event = screen.getch()
-        
-        if event == nc.KEY_RESIZE:
-            screenResizeCheckerandUpdater()
-        elif event != -1:
-            try:
-                event = convertKeyboardEvents(event)
-                if event in acceptedKeys:
-                    return event
-            except UnhandledKeyCode:
-                pass
+        try:
+            screen.addstr(screen.getmaxyx()[0] - 1, 0, " " * (screen.getmaxyx()[1] - 1), attributes | nc.A_REVERSE)
+            screen.addstr(screen.getmaxyx()[0] - 1, 0, f" {prompt}", attributes | nc.A_REVERSE)
+            
+            event = screen.getch()
+            
+            if event == nc.KEY_RESIZE:
+                screenResizeCheckerandUpdater()
+            elif event != -1:
+                try:
+                    event = convertKeyboardEvents(event)
+                    if event in acceptedKeys:
+                        return event
+                except UnhandledKeyCode:
+                    pass
+        except:
+            screen.erase()
+            screen.addch(0, 0, "!")
+            screen.refresh()
 
 
 screen = initCringeMidi()

@@ -5,7 +5,6 @@ from CringeEvents import *
 import CringeGlobals
 import CringeDisplay
 from CringeWidgets import *
-import CringeGlobals
 
 ### Mode Manager Class ###
 class Mode():
@@ -726,6 +725,8 @@ def saveProject(*_):
     saveBtn.enabled = False
     saveBtn.draw()
     CringeGlobals.projectSavedStatus = "󱣫 "
+    
+    raiseEvent("log", f"INFO: Project saved to {project.projectPath}")
     
 def loadProject():
     global project

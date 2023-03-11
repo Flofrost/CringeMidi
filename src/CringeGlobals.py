@@ -26,6 +26,7 @@ helpContents = [
         "     |",
         "    | i             Insert - Goes to the begening of the note and enters Insert mode",
         "    | H             Help - Goes to this screen (Help screen)",
+        "     | :             Command - Input a command",
         "     |",
         " 󰕍   | u             Undo - Undoes last action or last inserting session",
         " 󰑏   | r             Redo - Undoes an Undo, Redo list gets cleared when new actions are performed",
@@ -50,13 +51,23 @@ helpContents = [
         " 󱣫   | Save State - This icon appears after the file is save or freshly opened, and no modifications occured",
         " 󱫍   | State Uncached - Every actions performed while this icon is present will be part of the same undo/redo batch. Press Esc, Return, or undo to force the chaching",
     ]],
+    ["Commands", [
+        "Command(s)          | Name - Description",
+        "                    |",
+        "w, write, save      | Save Project - Save project to it's location",
+        "q, quit, exit       | Quit - Exit CringeMidi, if the project is unsaved, will prompt whether to save or discard it first",
+        "wq                  | Write and Quit - Saves project then quits",
+        "                    |",
+        "log, debug          | Debug Mode - Accesses logs for debugging purposes",
+    ]]
 ]
 
 debugContents = [
-    ["Debug", [
-        "RAS"
-    ]],
     ["Log", [
-        "RAS"
     ]]
 ]
+
+def log(logEntry: str):
+    global debugContents
+    debugContents[0][1].append(logEntry)
+subscribe("log", log)

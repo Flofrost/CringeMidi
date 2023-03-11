@@ -8,7 +8,7 @@ import json
 import CringeGlobals
 import CringeDisplay
 from CringeEvents import *
-from CringeMisc import *
+from CringeMidi import *
 
 #                  0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
 lineComponents = ("•", "↓", "→", "┘", "↑", "│", "┐", "┤", "←", "└", "─", "┴", "┌", "├", "┬", "┼")
@@ -417,7 +417,7 @@ class Instrument():
         self.name = name
         self.position = [0, 0]
         self.size = [20, 2]
-        self.notes: list[int] = notes if notes else [randint(0,255) for i in range(500)]
+        self.notes: list[int] = notes if notes else decodeNotes(generateNotes(amount=randint(5, 20)))
         self.type = insType
         self.visible = visible
         self.selected = False
@@ -551,6 +551,10 @@ class Project(InteractibleWidget):
                     self.scrollIndex -= 1
                 self.draw()
                 raiseEvent("instrumentListUpdate", self)
+            elif clickType == nc.BUTTON5_PRESSED | nc.BUTTON_SHIFT:
+                self.selectNext()
+            elif clickType == nc.BUTTON4_PRESSED | nc.BUTTON_SHIFT:
+                self.selectNext(False)
             
     def addInstrument(self, *_):
         self.instrumentList.append(Instrument(screen=self.pad, color=randint(CringeGlobals.CRINGE_COLOR_ISTR[0], CringeGlobals.CRINGE_COLOR_ISTR[-1])))
@@ -670,7 +674,15 @@ class Sheet(InteractibleWidget):
             self.screen.addstr(self.position[1] + i + 1, 0, f"{note}", nc.color_pair(self.project.selectedInstrument.color) | (nc.A_BOLD if not "#" in note else 0))
         
     def drawScrollBar(self):
-        pass
+        scrollBar = " " * self.size[0]
+
+        sheetLength = max([len(ins.notes) for ins in self.project.instrumentList]) + 50
+        handleLength = (self.size[0] ** 2) // sheetLength
+        handleLength = max(1, min(sheetLength, handleLength))
+        scrollBar = "◄" + "=" * handleLength + scrollBar[handleLength:-2] + "►"
+        
+
+        self.screen.addstr(self.position[1] + self.size[1] - 1, self.position[0], scrollBar)
 
     def drawRuler(self):
         pass
