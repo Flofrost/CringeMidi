@@ -1,7 +1,14 @@
 {
-    "selectee": 2,
+    "selectee": 0,
     "scrollIndex": 0,
     "instrumentList": [
+        {
+            "name": "Kita",
+            "type": "square",
+            "visible": true,
+            "color": 10,
+            "notes": "9A6f,5D#5f,22G#6f,8G6p,29B3F,16A2p,5D2P,21F#3P,2F#2P,5E3p,29G4f,5F#4p,5G#5f,26B4F,25F#3F"
+        },
         {
             "name": "Bocchi",
             "type": "square",
@@ -15,13 +22,6 @@
             "visible": true,
             "color": 12,
             "notes": "15D6f,10C6P,10A#5f,20D#6F,10D6p"
-        },
-        {
-            "name": "Kita",
-            "type": "square",
-            "visible": true,
-            "color": 10,
-            "notes": "9A6f,5D#5f,22G#6f,8G6p,29B3F,16A2p,5D2P,21F#3P,2F#2P,5E3p,29G4f,5F#4p,5G#5f,26B4F,25F#3F"
         },
         {
             "name": "Nijika",

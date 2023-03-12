@@ -310,7 +310,7 @@ def normalPositionner():
     modeList["normal"].getWidget("instrumentListToolbar").position = [CringeDisplay.screen.getmaxyx()[1] - 20, 4]
 
 def onInstrumentListUpdate(instrumentList: Project):
-    global rmvInstrumentBtn, uppInstrumentBtn, dwnInstrumentBtn
+    global rmvInstrumentBtn, uppInstrumentBtn, dwnInstrumentBtn, sheet
 
     rmvInstrumentBtn.enabled = len(instrumentList.instrumentList) > 1
     uppInstrumentBtn.enabled = instrumentList.selectee > 0 
@@ -320,6 +320,7 @@ def onInstrumentListUpdate(instrumentList: Project):
     uppInstrumentBtn.draw()
     dwnInstrumentBtn.draw()
     
+    sheet.ensureHorizontalScrollStaysInboundOfTheSheet()
     sheet.draw()
 
 def commandHandler():
@@ -331,6 +332,9 @@ def commandHandler():
         raiseEvent("exit")
     elif command == "wq":
         raiseEvent("saveProject")
+        raiseEvent("exit")
+    elif command == "q!":
+        CringeGlobals.projectSavedStatus = "X"
         raiseEvent("exit")
     elif command in ("debug", "log"):
         raiseEvent("modeUpdate", "debug")

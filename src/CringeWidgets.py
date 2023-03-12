@@ -417,7 +417,7 @@ class Instrument():
         self.name = name
         self.position = [0, 0]
         self.size = [20, 2]
-        self.notes: list[int] = notes if notes else decodeNotes(generateNotes(amount=randint(5, 20)))
+        self.notes: list[int] = notes if notes else decodeNotes(generateNotes(amount=randint(20, 200)))
         self.type = insType
         self.visible = visible
         self.selected = False
@@ -678,10 +678,14 @@ class Sheet(InteractibleWidget):
         handleStart = int(handleStart * (self.size[0] - 2))
         handleLength = self.size[0] / self.length
         handleLength = max(1, min(self.size[0] - 2, int(handleLength * (self.size[0] - 2)) + 1))
+        if handleLength > 1:
+            handle = "╠" + "═" * (handleLength - 2) + "╣"
+        else:
+            handle = "║"
         scrollBar = \
             "◄" + \
             " " * handleStart + \
-            "=" * handleLength + \
+            handle + \
             " " * (self.size[0] - handleLength - handleStart - 2) + \
             "►"
 
@@ -710,7 +714,7 @@ class Sheet(InteractibleWidget):
                 if convertedNote in noteForAllInstrumentsInThisSlice:
                     char = "█▓▒░"[convertedNote >> 6]
                     color = CringeGlobals.CRINGE_COLOR_DSBL
-                if convertedTime < len(self.project.selectedInstrument.notes) and (self.project.selectedInstrument.notes[convertedTime] & 0x3F) == convertedNote:
+                if convertedTime < len(self.project.selectedInstrument.notes) and self.project.selectedInstrument.visible and (self.project.selectedInstrument.notes[convertedTime] & 0x3F) == convertedNote:
                     char = "█▓▒░"[self.project.selectedInstrument.notes[convertedTime] >> 6]
                     color = self.project.selectedInstrument.color
 
@@ -727,7 +731,20 @@ class Sheet(InteractibleWidget):
                 self.scrollV()
             elif clickType == (nc.BUTTON4_PRESSED | nc.BUTTON_SHIFT):
                 self.scrollV(True)
+            elif clickType == nc.BUTTON1_PRESSED and (relPos[1] == self.size[1] - 1):
+                if relPos[0] > 0 and relPos[0] < self.size[0] - 1:
+                    self.goto((relPos[0] - 1) / (self.size[0] - 2))
+                elif relPos[0] == 0:
+                    self.scrollH(True)
+                elif relPos[0] == self.size[0] - 1:
+                    self.scrollH()
                 
+    def goto(self, pos: float):
+        handleLength = self.size[0] / self.length
+        newPos = min(1 - handleLength, max(0, pos - handleLength / 2))
+        self.scrollHIndex = int(newPos * self.length)
+        self.draw()
+            
     def scrollV(self, up=False):
         if up:
             if self.scrollVIndex > 0:
@@ -750,6 +767,10 @@ class Sheet(InteractibleWidget):
         self.size = newSize
         if self.scrollVIndex > 60 - self.size[1]:
             self.scrollVIndex = max(60 - self.size[1] + 2, 0)
+            
+    def ensureHorizontalScrollStaysInboundOfTheSheet(self):
+        if self.scrollHIndex > self.length - self.size[0]:
+            self.scrollHIndex = self.length - self.size[0] - 1
             
     @property
     def length(self):

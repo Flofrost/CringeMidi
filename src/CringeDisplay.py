@@ -34,7 +34,6 @@ def initCringeMidi() -> nc._CursesWindow:
     nc.cbreak()
     nc.noecho()
     nc.curs_set(0)
-    nc.mouseinterval(0)
     nc.set_escdelay(100)
     screen.keypad(1)
 
@@ -55,6 +54,7 @@ def initCringeMidi() -> nc._CursesWindow:
         nc.init_pair(CringeGlobals.CRINGE_COLOR_ISTR[6], 202, -1)
         nc.init_pair(CringeGlobals.CRINGE_COLOR_ISTR[7],  99, -1)
 
+    nc.mouseinterval(0)
     nc.mousemask(-1)
     
     signal(SIGINT, terminationJudgement)

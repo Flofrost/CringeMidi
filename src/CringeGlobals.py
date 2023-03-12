@@ -57,6 +57,7 @@ helpContents = [
         "w, write, save      | Save Project - Save project to it's location",
         "q, quit, exit       | Quit - Exit CringeMidi, if the project is unsaved, will prompt whether to save or discard it first",
         "wq                  | Write and Quit - Saves project then quits",
+        "q!                  | Discard and Quit - Quits without saving",
         "                    |",
         "log, debug          | Debug Mode - Accesses logs for debugging purposes",
     ]]
